@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up | Profilepicmultimedia</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* --- 1. Variables (Shared Theme) --- */
+:root { 
+  --primary-color: #CE6826;      /* Brand Orange */
+  --primary-hover: #E87A30;
+  --bg-gradient-start: #F9BF5F;  /* Light Yellow */
+  --bg-gradient-end: #F4981E;
+  --text-main: #1e293b;          /* Dark Grey for text */
+  --text-muted: #64748b;         /* Lighter Grey */
+  --input-bg: #f8fafc;
+  --input-border: #e2e8f0;
+  --white: #ffffff;
+  --glass-overlay: rgba(0, 0, 0, 0.4); /* For image overlay */
+}
+
+/* --- 2. Global Reset --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* --- 3. Layout Wrapper --- */
+.page-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* --- 4. The Card Containers --- */
+
+/* Login Card (Small, Centered) */
+.login-card {
+  background-color: var(--white);
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 35px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Signup Card (Wider, Split Layout) */
+.signup-card {
+  background-color: var(--white);
+  width: 100%;
+  max-width: 900px; /* Wider to fit image + form */
+  display: flex;    /* Side by side layout */
+  border-radius: 16px;
+  overflow: hidden; /* Clips the image corners */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  min-height: 610px;
+}
+
+/* --- 5. Signup Left Side (Image) --- */
+.signup-image-section {
+  width: 45%;
+  position: relative;
+  background-color: #333; /* Fallback color */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 30px;
+  color: white;
+}
+
+/* The actual image */
+.bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Dark overlay so text is readable */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
+  z-index: 1;
+}
+
+/* Content on top of image */
+.image-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.brand-badge img {
+  width: 50px;
+  height: auto;
+  background: rgba(255,255,255,0.2);
+  padding: 5px;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.image-text h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.image-text .highlight {
+  color: var(--primary-color); /* Orange Highlight */
+}
+
+.back-link {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-top: auto; /* Push to bottom if needed */
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+/* --- 6. Signup Right Side (Form) --- */
+.signup-form-section {
+  width: 55%;
+  padding: 50px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.form-header {
+  margin-bottom: 30px;
+}
+
+.form-header h2 {
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-main);
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.form-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* --- 7. Form Elements (Shared with Login) --- */
+.input-group {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.row-group {
+  display: flex;
+  gap: 15px;
+}
+
+.row-group .input-group {
+  flex: 1; /* Makes first/last name take equal width */
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+/* 1. New Style for the Wrapper */
+.password-wrapper {
+  position: relative; /* This is the anchor for the icon */
+  width: 100%;         /* Moving your 80% width preference here */
+  display: flex;      /* Keeps input and icon aligned */
+  align-items: center;
+}
+
+/* 2. Your Existing Input Style (Modified) */
+.input-group input {
+  width: 100%; /* CHANGE: Fill the wrapper, don't shrink inside it */
+  padding: 12px 16px;
+  padding-right: 40px; /* IMPORTANT: Add space on the right for the icon */
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box; /* Ensures padding doesn't break the width */
+}
+
+/* 3. Focus State (Kept same as yours) */
+.input-group input:focus {
+  border-color: var(--primary-color);
+  background-color: var(--white);
+  box-shadow: 0 0 0 3px rgba(206, 104, 38, 0.15);
+}
+
+/* 4. The Icon Style */
+.toggle-eye {
+  position: absolute; /* Floats the icon */
+  right: 12px;        /* Distance from the right edge */
+  cursor: pointer;
+  color: #666;        /* Adjust to match your theme */
+  display: flex;
+  align-items: center;
+  z-index: 10;        /* Ensures it sits ON TOP of the input */
+}
+
+/* Checkbox specific */
+.checkbox-group {
+  margin-bottom: 25px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-group input {
+  accent-color: var(--primary-color);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkbox-group a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+/* Button */
+.auth-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.2s ease;
+  box-shadow: 0 4px 12px rgba(206, 104, 38, 0.2);
+}
+
+.auth-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.auth-btn:active {
+  transform: scale(0.98);
+}
+
+/* Switch Auth Text (Login/Signup link) */
+.switch-auth {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.switch-auth a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.switch-auth a:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+/* --- 8. Mobile Responsiveness --- */
+@media (max-width: 768px) {
+  .signup-card {
+    flex-direction: column; /* Stack vertically on mobile */
+    max-width: 450px;
+  }
+
+  .signup-image-section {
+    width: 100%;
+    height: 150px; /* Short banner on mobile */
+    padding: 20px;
+  }
+
+  .signup-image-section .image-text, 
+  .signup-image-section .brand-badge {
+    display: none; /* Hide text/logo on image for mobile cleaner look */
+  }
+
+  .signup-form-section {
+    width: 100%;
+    padding: 30px 20px;
+  }
+}
+
+/* Add this to your main stylesheet */
+.error-placeholder {
+ color: #d9534f;
+  font-size: 12px;
+  margin-top: 5px; /* Space between the input and the error message */
+  margin-bottom: 10px; /* 🌟 NEW: Add sufficient space below the error message 🌟 */
+  padding-left: 5px;
+  font-weight: 500;
+}
+
+/* CSS to reserve the space */
+.error-placeholder.hidden {
+    min-height: 10px; /* Adjust this value to match the exact height of your .error-message */
+    visibility: hidden; /* Hide the text, but keep the space reserved */
+}
+  </style>
+</head>
+<body class="auth-page">
+  
+  <div class="page-wrapper">
+    <div class="signup-card">
+
+      <div class="signup-image-section">
+        <div class="image-overlay"></div>
+        <img src="new_website_materials/location_images/SUBA_SAND_DUNES/suba_raw_images/1.jpg" alt="Signup Visual" class="bg-image" />
+        
+        <div class="image-content">
+          <div class="brand-badge">
+             <img src="images/logo_test.png" alt="Logo" />
+          </div>
+          <div class="image-text">
+            <h3>We Create <span class="highlight">Memories</span></h3>
+            <p>Join us to start your journey.</p>
+          </div>
+          <a href="index.html" class="back-link">← Back to Website</a>
+        </div>
+      </div>
+
+      <div class="signup-form-section">
+        <div class="form-header">
+          <h2>Create Account</h2>
+          <p>Please fill in your details to register.</p>
+        </div>
+
+        <form id="signupForm">
+          
+          <div class="row-group">
+            <div class="input-group">
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" placeholder="John" required />
+            </div>
+            <div class="input-group">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" placeholder="Doe" required />
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="name@company.com" required />
+          </div>
+          
+         <div class="input-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" placeholder="••••••••" required />
+              <span class="toggle-eye" onclick="togglePassword('password', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </span>
+            </div>
+            <p id="passwordError" class="error-placeholder"></p>
+          </div>
+
+          <div class="input-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="confirmPassword" placeholder="••••••••" required />
+              <span class="toggle-eye" onclick="togglePassword('confirmPassword', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </span>
+            </div>
+            <p id="passwordError" class="error-placeholder hidden"></p>
+          </div>
+          
+          <div class="checkbox-group">
+            <label>
+              <input type="checkbox" required />
+              <span>I agree to the <a href="#">Terms</a> & <a href="#">Privacy Policy</a>.</span>
+            </label>
+          </div>
+          
+          <button type="submit" class="auth-btn">Create Account</button>
+          
+          <p class="switch-auth">
+            Already have an account? <a href="login.html">Log in</a>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <footer class="footer">
+      © 2025 Profilepicmultimedia. All rights reserved.
+    </footer>
+  </div>
+
+  <script>
+// --- 1. ERROR DISPLAY FUNCTIONS (NEW) ---
+
+// Helper function to remove all previous errors before a new submission
+function removeInlineErrors() {
+  document.querySelectorAll('.error-message').forEach(el => el.remove());
+}
+
+// Helper function to display an error below a specific input
+// Helper function to display an error below a specific input
+function displayInlineError(inputId, message) {
+  // Find the input element (e.g., #password)
+  const inputElement = document.getElementById(inputId);
+  if (!inputElement) return;
+
+  // Find the correct element to insert the error *after*. 
+  // We want to insert the error right after the <input> inside the wrapper.
+  const insertionPoint = inputElement.closest('.password-wrapper') || inputElement; // Use the wrapper if it exists, otherwise the input
+
+  if (!insertionPoint) return;
+
+  // Create the error message element
+  const errorEl = document.createElement('p');
+  errorEl.className = 'error-message';
+  errorEl.textContent = message;
+
+  // --- 🌟 THE KEY CHANGE IS HERE 🌟 ---
+  // Insert the error message AFTER the input/wrapper (insertionPoint).
+  insertionPoint.insertAdjacentElement('afterend', errorEl); 
+
+  // Optional: Focus the problematic input
+  inputElement.focus();
+}
+
+function displayInlineError(inputId, message) {
+  // We assume the error placeholder ID is inputId + "Error"
+  const errorEl = document.getElementById(inputId + "Error"); 
+
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.style.visibility = 'visible'; // Make the reserved space visible
+  }
+  // ... rest of the function ...
+}
+
+// You will need a similar function for clearing errors
+function removeInlineErrors() {
+  document.querySelectorAll('.error-placeholder').forEach(el => {
+     el.textContent = '';
+     el.style.visibility = 'hidden';
+  });
+}
+
+// --- 2. PASSWORD VALIDATION LOGIC (KEPT SAME) ---
+function isPasswordValid(password) {
+  // Check length (Min 8, Max 16)
+  if (password.length < 8 || password.length > 16) {
+    return { valid: false, msg: "Password must be between 8 and 16 characters." };
+  }
+
+  // Check for at least one number OR one special character
+  const hasNumberOrSpecial = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+  if (!hasNumberOrSpecial) {
+    return { valid: false, msg: "Password must include at least one number or special character." };
+  }
+
+  return { valid: true };
+}
+
+// --- 3. UPDATED FORM SUBMISSION (MODIFIED) ---
+document.getElementById("signupForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  removeInlineErrors(); // Clear old errors first!
+
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+  
+  // Flag to check if any validation failed
+  let validationFailed = false;
+
+  // 1. Validate Password Complexity
+  const passwordCheck = isPasswordValid(password);
+  if (!passwordCheck.valid) {
+    displayInlineError("password", passwordCheck.msg);
+    validationFailed = true;
+  }
+
+  // 2. Validate Match
+  if (password !== confirmPassword) {
+    displayInlineError("confirmPassword", "Passwords do not match!");
+    validationFailed = true;
+  }
+  
+  // Stop if any client-side validation failed
+  if (validationFailed) {
+      return; 
+  }
+
+  // If validation passes, continue with API call
+  const full_name = `${firstName} ${lastName}`.trim();
+
+  try {
+    const response = await fetch("/api/auth/register", { 
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ full_name, email, password })
+    });
+
+    const data = await response.json(); 
+
+    if (response.ok) {
+      alert("Account created successfully! You can now log in.");
+      window.location.href = "/login.html"; 
+    } else {
+      // For general server errors (e.g., email already exists)
+      alert(data.message || "Registration failed."); 
+    }
+  } catch (error) {
+    console.error("Signup failed:", error);
+    alert("A network error occurred. Please check your connection.");
+  }
+});
+
+function togglePassword(inputId, iconElement) {
+  const input = document.getElementById(inputId);
+  const svg = iconElement.querySelector('svg');
+  
+  if (input.type === "password") {
+    // Switch to Text (Show Password)
+    input.type = "text";
+    
+    // Change Icon to "Eye Off" (Slash)
+    svg.innerHTML = `
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    `;
+    
+  } else {
+    // Switch back to Password (Hide)
+    input.type = "password";
+    
+    // Change Icon back to normal "Eye"
+    svg.innerHTML = `
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    `;
+  }
+}
+</script>
+</body>
+</html>

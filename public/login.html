@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Profilepicmultimedia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    /* --- Variables for easy theming --- */
+:root { 
+  --primary-color: #CE6826; /* Your Brand Orange */
+  --primary-hover: #E87A30;
+  --bg-gradient-start: #F9BF5F; /* Your Light Yellow */
+  --bg-gradient-end: #F4981E;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --input-bg: #f8fafc;
+  --input-border: #e2e8f0;
+  --white: #ffffff;
+}
+
+/* --- Global Reset --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+  min-height: 100vh;
+  display: flex;
+  align-items: center; /* Vertically center */
+  justify-content: center; /* Horizontally center */
+  padding: 20px;
+}
+
+/* --- Layout Wrapper --- */
+.page-wrapper {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* --- The Main Login Card --- */
+.login-card {
+  background-color: var(--white);
+  width: 100%;
+  padding: 40px 35px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft, professional shadow */
+}
+
+/* --- Header & Logo --- */
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo-container img {
+  height: 60px; /* Adjusted for better proportion */
+  width: auto;
+  object-fit: contain;
+  margin-bottom: 15px;
+}
+
+.login-header h2 {
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-main);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* --- Form Elements --- */
+.input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+/* 1. New Style for the Wrapper */
+.password-wrapper {
+  position: relative; /* This is the anchor for the icon */
+  width: 100%;         /* Moving your 80% width preference here */
+  display: flex;      /* Keeps input and icon aligned */
+  align-items: center;
+}
+
+/* 2. Your Existing Input Style (Modified) */
+.input-group input {
+  width: 100%; /* CHANGE: Fill the wrapper, don't shrink inside it */
+  padding: 12px 16px;
+  padding-right: 40px; /* IMPORTANT: Add space on the right for the icon */
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box; /* Ensures padding doesn't break the width */
+}
+
+/* 3. Focus State (Kept same as yours) */
+.input-group input:focus {
+  border-color: var(--primary-color);
+  background-color: var(--white);
+  box-shadow: 0 0 0 3px rgba(206, 104, 38, 0.15);
+}
+
+/* 4. The Icon Style */
+.toggle-eye {
+  position: absolute; /* Floats the icon */
+  right: 12px;        /* Distance from the right edge */
+  cursor: pointer;
+  color: #666;        /* Adjust to match your theme */
+  display: flex;
+  align-items: center;
+  z-index: 10;        /* Ensures it sits ON TOP of the input */
+}
+
+/* --- Options (Remember Me / Forgot PW) --- */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  font-size: 0.85rem;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.remember-me input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.forgot-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+/* --- Buttons --- */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+.login-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.login-btn:active {
+  transform: scale(0.98); /* Slight click effect */
+}
+
+/* --- Register / Footer --- */
+.register-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.register-link a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8); /* Semi-transparent white on the colored bg */
+  text-align: center;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 30px 20px;
+  }
+}
+  </style>
+</head>
+<body>
+
+  <div class="page-wrapper">
+    <div class="login-card">
+      
+      <div class="login-header">
+        <div class="logo-container">
+          <img src="images/logo_test.png" alt="Profilepicmultimedia Logo">
+        </div>
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Please enter your details to sign in.</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="input-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="name@company.com" required>
+        </div>
+
+        <div class="input-group">
+            <label for="confirmPassword">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" placeholder="••••••••" required />
+              <span class="toggle-eye" onclick="togglePassword('Password', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </span>
+            </div>
+          </div>
+
+        <div class="actions">
+          <label class="remember-me">
+            <input type="checkbox"> 
+            <span>Remember me</span>
+          </label>
+          <a href="forgot-password.html" class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="login-btn">Sign In</button>
+
+        <div class="register-link">
+          Don’t have an account? <a href="signup.html">Create one</a>
+        </div>
+      </form>
+    </div>
+
+    <footer class="footer">
+      © 2025 Profilepicmultimedia. All rights reserved.
+    </footer>
+  </div>
+
+  <script>
+   document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // SUCCESS: Store the JWT token and user info
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userRole', data.user.role);
+                
+                // Redirect based on role (Initial simple routing)
+                if (data.user.role === 'admin' || data.user.role === 'staff') {
+                    window.location.href = '/dashboard.html'; // Admin/Staff Dashboard
+                } else {
+                    window.location.href = '/index.html'; // Regular Customer Profile
+                }
+
+            } else {
+                alert(data.message || "Login failed. Check your email and password.");
+            }
+        } catch (error) {
+            console.error("Login failed:", error);
+            alert("A network error occurred. Please try again.");
+        }
+    });
+
+    function togglePassword(inputId, iconElement) {
+  const input = document.getElementById(inputId);
+  const svg = iconElement.querySelector('svg');
+  
+  if (input.type === "password") {
+    // Switch to Text (Show Password)
+    input.type = "text";
+    
+    // Change Icon to "Eye Off" (Slash)
+    svg.innerHTML = `
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    `;
+    
+  } else {
+    // Switch back to Password (Hide)
+    input.type = "password";
+    
+    // Change Icon back to normal "Eye"
+    svg.innerHTML = `
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    `;
+  }
+}
+  </script>
+</body>
+</html>

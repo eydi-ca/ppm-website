@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Profilepicmultimedia</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+<style>
+    /* ========================== */
+    /* MODERN VARIABLES */
+    /* ========================== */
+    :root {
+        /* Colors */
+        --primary: #0A142D;
+        --primary-light: #1b2b52;
+        --accent: #CE6826;
+        --accent-hover: #e87b35;
+        --bg-body: #F4F7FE; /* Soft Blue-Grey Background */
+        --bg-card: #FFFFFF;
+        
+        /* Text */
+        --text-main: #2B3674;
+        --text-secondary: #A3AED0;
+        
+        /* Shape & Depth */
+        --radius-xl: 30px;
+        --radius-l: 20px;
+        --radius-m: 12px;
+        --radius-s: 8px;
+        --shadow-soft: 0px 18px 40px rgba(112, 144, 176, 0.12);
+        --shadow-hover: 0px 20px 50px rgba(112, 144, 176, 0.22);
+    }
+
+    /* ========================== */
+    /* GLOBAL RESET */
+    /* ========================== */
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: "DM Sans", "Poppins", sans-serif; /* DM Sans is cleaner for UI */
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        overflow: hidden; /* Prevent body scroll, handle in wrappers */
+    }
+
+    h1, h2, h3 {
+        font-family: "Poppins", sans-serif;
+        margin: 0;
+    }
+
+    a { text-decoration: none; }
+    
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* ========================== */
+    /* LAYOUT STRUCTURE */
+    /* ========================== */
+    .dashboard-layout {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* ========================== */
+    /* SIDEBAR */
+    /* ========================== */
+    .sidebar {
+        width: 280px;
+        background-color: var(--bg-card); /* White sidebar for cleaner look */
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 30px 20px;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+        /* No border, just soft shadow */
+        box-shadow: 4px 0 30px rgba(0,0,0,0.02); 
+        z-index: 20;
+    }
+
+    .sidebar-header {
+        margin-bottom: 40px;
+        padding-left: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-header h1 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .sidebar nav ul {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .sidebar nav ul li a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: var(--radius-xl); /* Pill shape */
+        transition: all 0.2s ease;
+    }
+
+    .sidebar nav ul li a:hover {
+        background-color: var(--bg-body);
+        color: var(--primary);
+    }
+
+    .sidebar nav ul li a.active {
+        background-color: var(--primary);
+        color: #fff;
+        box-shadow: 0 10px 20px rgba(10, 20, 45, 0.2);
+    }
+    
+    .sidebar nav ul li a .material-icons-round {
+        font-size: 20px;
+    }
+
+    .sidebar-footer {
+        margin-top: auto;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-align: center;
+        padding-top: 20px;
+    }
+
+    /* ========================== */
+    /* MAIN CONTENT */
+    /* ========================== */
+    .content-wrapper {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 0;
+        position: relative;
+    }
+
+    /* TOP BAR */
+    .top-bar {
+        padding: 30px 40px 10px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: transparent; /* Transparent header */
+        flex-shrink: 0;
+    }
+
+    .top-bar-left h4 {
+        margin: 0;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .top-bar-left h2 {
+        font-size: 2rem;
+        color: var(--primary);
+        font-weight: 700;
+    }
+
+    /* ========================== */
+    /* COMPONENTS */
+    /* ========================== */
+    
+    /* Views & Sections */
+    main { padding: 30px 40px; }
+    
+    .page-view { animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden-view { display: none !important; }
+
+    .section {
+        margin-bottom: 30px;
+    }
+
+    .section h2 {
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+        color: var(--primary);
+    }
+
+    /* Cards */
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .card {
+        background: var(--bg-card);
+        border-radius: var(--radius-l);
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        /* Soft Shadow */
+        box-shadow: var(--shadow-soft);
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .card-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background-color: var(--bg-body);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .card h3 {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    /* Charts */
+    .charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .chart-container {
+        background: var(--bg-card);
+        border-radius: var(--radius-l);
+        padding: 25px;
+        box-shadow: var(--shadow-soft);
+        position: relative;
+    }
+
+    /* Tables (The Cleanest Part) */
+    .table-container {
+        background: var(--bg-card);
+        border-radius: var(--radius-l);
+        box-shadow: var(--shadow-soft);
+        padding: 20px;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+
+    th {
+        text-align: left;
+        padding: 15px 20px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+        border-bottom: 1px solid #EBEFF8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    td {
+        padding: 15px 20px;
+        color: var(--text-main);
+        font-weight: 500;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #EBEFF8;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    
+    tr:hover td { background-color: var(--bg-body); cursor: default; }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .status-paid { background: #e6f9f0; color: #02a362; }
+    .status-pending { background: #fff8e6; color: #d99a07; }
+    .status-cancel { background: #feebeb; color: #d62f2f; }
+
+    /* Buttons & Forms */
+    button, .book-now-btn {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--radius-xl); /* Rounded Pill buttons */
+        font-weight: 500;
+        font-family: "DM Sans", sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 10px rgba(10, 20, 45, 0.2);
+    }
+
+    button:hover, .book-now-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(10, 20, 45, 0.3);
+    }
+
+    button.accent-btn {
+        background: var(--accent);
+        box-shadow: 0 4px 10px rgba(206, 104, 38, 0.3);
+    }
+    
+    button.accent-btn:hover { background: var(--accent-hover); }
+
+    button.danger-btn { background: #ff5b5b; box-shadow: 0 4px 10px rgba(255, 91, 91, 0.3); }
+
+    input, select, textarea {
+        padding: 12px 20px;
+        border-radius: var(--radius-m);
+        border: 1px solid transparent;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        width: auto;
+    }
+
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        background-color: #fff;
+        border: 1px solid var(--primary);
+        box-shadow: 0 0 0 3px rgba(10, 20, 45, 0.05);
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(10, 20, 45, 0.4); /* Dark blue tint */
+        backdrop-filter: blur(4px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: #fff;
+        padding: 40px;
+        border-radius: var(--radius-l);
+        width: 90%;
+        max-width: 450px;
+        text-align: center;
+        box-shadow: var(--shadow-hover);
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* File Upload */
+    .file-upload-wrapper {
+        border: 2px dashed #A3AED0;
+        border-radius: var(--radius-l);
+        padding: 30px;
+        text-align: center;
+        background: #fafbff;
+        margin: 20px 0;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+        .dashboard-layout { flex-direction: column; height: auto; overflow: auto; }
+        .sidebar { 
+            width: 100%; height: auto; padding: 15px; 
+            flex-direction: row; justify-content: space-between; align-items: center;
+        }
+        .sidebar nav ul { flex-direction: row; flex-wrap: wrap; gap: 5px; }
+        .sidebar nav ul li a { padding: 10px; font-size: 0; } /* Hide text on mobile nav, icons only */
+        .sidebar nav ul li a .material-icons-round { font-size: 24px; margin: 0; }
+        .sidebar-footer { display: none; }
+        .content-wrapper { height: auto; }
+        .top-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
+        .top-bar nav { width: 100%; display: flex; justify-content: flex-end; }
+        table { min-width: 600px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="dashboard-layout">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span class="material-icons-round" style="color:var(--accent);">camera</span>
+            <h1>Profilepic</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a data-view="analytics" class="active"><span class="material-icons-round">analytics</span> Analytics</a></li>
+                <li><a data-view="bookings"><span class="material-icons-round">calendar_today</span> Bookings</a></li>
+                <li class="admin-only"><a data-view="users"><span class="material-icons-round">people</span> Users</a></li>
+                <li><a data-view="payments"><span class="material-icons-round">payments</span> Payments</a></li>
+                <li><a data-view="gallery"><span class="material-icons-round">collections</span> Gallery</a></li>
+                <li><a data-view="transactions"><span class="material-icons-round">receipt_long</span> Transactions</a></li>
+                <li><a data-view="notifications"><span class="material-icons-round">notifications</span> Notifications</a></li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            © 2025 Multimedia
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <h4>Dashboard / Overview</h4>
+                <h2>Welcome Back</h2>
+            </div>
+            <nav>
+                <button id="logoutBtn" class="danger-btn">
+                    <span style="display:flex; align-items:center; gap:5px;">
+                        <span class="material-icons-round" style="font-size:18px;">logout</span> Logout
+                    </span>
+                </button>
+            </nav>
+        </div>
+
+        <main id="mainContent">
+            
+            <div id="analytics-view" class="page-view">
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <div class="card-icon"><span class="material-icons-round">book_online</span></div>
+                        <h3>Total Bookings</h3>
+                        <div class="value" id="totalBookings">0</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><span class="material-icons-round">attach_money</span></div>
+                        <h3>Revenue (₱)</h3>
+                        <div class="value" id="totalRevenue">0</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><span class="material-icons-round">group</span></div>
+                        <h3>Active Clients</h3>
+                        <div class="value" id="totalClients">0</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon"><span class="material-icons-round">star</span></div>
+                        <h3>Top Package</h3>
+                        <div class="value" id="popularPackage">-</div>
+                    </div>
+                </div>
+
+                <div class="charts">
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 20px;">Monthly Activity</h3>
+                        <canvas id="bookingsChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 20px;">Locations</h3>
+                        <canvas id="locationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bookings-view" class="page-view hidden-view">
+                <div class="section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h2>Recent Bookings</h2>
+                        <button onclick="loadBookings()" class="accent-btn">Refresh</button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <div id="bookings" class="loading" style="display:none;">Loading data...</div>
+                        <table id="bookingTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Package</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                    <th>Review</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingTableBody">
+                                <tr>
+                                    <td>#101</td>
+                                    <td>John Doe</td>
+                                    <td>Wedding Basic</td>
+                                    <td>Oct 24, 2025</td>
+                                    <td><span class="status-badge status-pending">Pending</span></td>
+                                    <td>Unpaid</td>
+                                    <td>-</td>
+                                    <td><button style="padding:5px 10px; font-size:0.8rem;">View</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="users-view" class="page-view hidden-view admin-only">
+                <div class="section">
+                    <h2>User Management</h2>
+                    <button onclick="loadUsers()" class="accent-btn" style="margin-bottom:20px;">Refresh Users</button>
+                    <div class="table-container">
+                        <div id="users" class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="payments-view" class="page-view hidden-view">
+                <div class="section">
+                    <h2>Payment History</h2>
+                    <button onclick="loadPayments()" class="accent-btn" style="margin-bottom:20px;">Refresh</button>
+                    <div class="table-container">
+                        <div id="payments" class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gallery-view" class="page-view hidden-view">
+                <div class="section">
+                    <h2>Photo Gallery & Uploads</h2>
+                    
+                    <div class="card" style="max-width: 600px; margin-top:20px;">
+                        <h3 style="margin-bottom:15px;">Upload New Session</h3>
+                        
+                        <select id="customerSelect" style="width:100%; margin-bottom:15px;">
+                            <option value="">Select a customer</option>
+                        </select>
+
+                        <form id="bulkUploadForm" enctype="multipart/form-data">
+                            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                                <input type="text" id="bookingId" placeholder="Booking ID (Opt)" style="flex:1;"/>
+                                <input type="number" id="price" placeholder="Price" value="100" style="flex:1;"/>
+                            </div>
+                            
+                            <div class="file-upload-wrapper">
+                                <span class="material-icons-round" style="font-size:30px; color:#A3AED0;">cloud_upload</span>
+                                <p style="margin:5px 0 15px; color:#A3AED0;">Drag files or click to upload</p>
+                                <input type="file" id="bulkPhotos" name="photos" multiple required />
+                            </div>
+
+                            <button type="submit" class="accent-btn" style="width:100%;">Start Upload</button>
+                        </form>
+
+                        <p id="uploadStatus" style="margin-top:10px; font-size:0.9rem; color:var(--text-secondary);"></p>
+                    </div>
+
+                    <div id="photoList" style="margin-top:30px;"></div>
+                    
+                    <div style="margin-top:30px;">
+                        <button id="generateQRBtn">Generate QR Code</button>
+                        <div id="qrResult" style="margin-top:20px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="transactions-view" class="page-view hidden-view">
+                <div class="section">
+                    <h2>Recent Transactions</h2>
+                    <div class="table-container">
+                        <table id="transactionsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Customer</th>
+                                    <th>Reference ID</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="notifications-view" class="page-view hidden-view">
+                <div class="section">
+                    <h2>Notifications</h2>
+                    <button onclick="loadNotifications()" class="accent-btn">Refresh</button>
+                    <div id="notifications" class="loading" style="margin-top:20px;">Loading...</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div id="downpaymentModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Process Downpayment</h3>
+        <p style="color:var(--text-secondary); margin-bottom:20px;">Enter amount below</p>
+        <input type="number" id="downpaymentAmount" placeholder="Amount (₱)" style="width:100%; margin-bottom:20px;" />
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button onclick="submitDownpayment()" class="accent-btn">Submit</button>
+            <button onclick="closeModal('downpaymentModal')" class="danger-btn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="cancelModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="material-icons-round" style="color:#ff5b5b; font-size:40px; margin-bottom:10px;">warning</span>
+        <h3>Cancel Booking?</h3>
+        <p style="color:var(--text-secondary); margin-bottom:25px;">This action cannot be undone.</p>
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button onclick="confirmCancel()" class="danger-btn">Yes, Cancel</button>
+            <button onclick="closeModal('cancelModal')" style="background:#EBEFF8; color:var(--text-main);">No, Keep it</button>
+        </div>
+    </div>
+</div>
+
+<div id="summaryModal" class="modal-overlay">
+    <div class="modal-content" style="max-width:600px;">
+        <h3>Booking Summary</h3>
+        <div id="summaryContent" style="margin:20px 0; text-align:left;">
+            <p>Loading summary...</p>
+        </div>
+        <button onclick="closeModal('summaryModal')" class="danger-btn">Close</button>
+    </div>
+</div>
+
+<script src="../js/dashboard.js"></script>
+<script>
+    // Logout Logic
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "../index.html";
+    });
+    
+    // View Navigation Logic
+    document.querySelectorAll('.sidebar nav a').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetViewId = this.getAttribute('data-view') + '-view';
+            
+            // Remove active state
+            document.querySelectorAll('.sidebar nav a').forEach(link => link.classList.remove('active'));
+            this.classList.add('active');
+
+            // Swap Views
+            document.querySelectorAll('.page-view').forEach(view => view.classList.add('hidden-view'));
+            const targetView = document.getElementById(targetViewId);
+            if (targetView) targetView.classList.remove('hidden-view');
+            
+            // Scroll to top
+            document.querySelector('.content-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    // Modal Helpers (Since style changed to flex)
+    // You might need to update dashboard.js to use 'flex' instead of 'block' for these IDs
+    // Or override here:
+    const originalGetElement = document.getElementById;
+    window.openModalOverride = function(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+    // Note: Ensure dashboard.js calls document.getElementById(id).style.display = 'flex' 
+    // If dashboard.js sets it to 'block', add this CSS rule:
+    // .modal-overlay[style*="display: block"] { display: flex !important; }
+</script>
+
+</body>
+</html>
