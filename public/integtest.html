@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        /* ========================== */
+        /* MODERN VARIABLES */
+        /* ========================== */
+        :root {
+            /* Colors */
+            --primary: #0A142D;
+            --primary-light: #1b2b52;
+            --accent: #CE6826;
+            --accent-hover: #e87b35;
+            --bg-body: #F4F7FE; /* Soft Blue-Grey Background */
+            --bg-card: #FFFFFF;
+            
+            /* Text */
+            --text-main: #2B3674;
+            --text-secondary: #A3AED0;
+            
+            /* Shape & Depth */
+            --radius-xl: 30px;
+            --radius-l: 20px;
+            --radius-m: 12px;
+            --radius-s: 8px;
+            --shadow-soft: 0px 18px 40px rgba(112, 144, 176, 0.12);
+            --shadow-hover: 0px 20px 50px rgba(112, 144, 176, 0.22);
+        }
+
+        /* ========================== */
+        /* GLOBAL RESET */
+        /* ========================== */
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: "DM Sans", "Poppins", sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0; padding: 0;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        h1, h2, h3 { font-family: "Poppins", sans-serif; margin: 0; }
+        a { text-decoration: none; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ========================== */
+        /* LAYOUT STRUCTURE */
+        /* ========================== */
+        .dashboard-layout { display: flex; height: 100vh; width: 100vw; }
+        .sidebar { width: 280px; background-color: var(--bg-card); height: 100%; display: flex; flex-direction: column; padding: 30px 20px; flex-shrink: 0; transition: all 0.3s ease; box-shadow: 4px 0 30px rgba(0,0,0,0.02); z-index: 20; }
+        .sidebar-header { margin-bottom: 40px; padding-left: 10px; display: flex; align-items: center; gap: 10px; }
+        .sidebar-header h1 { font-size: 1.2rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar nav ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar nav ul li a { display: flex; align-items: center; gap: 12px; padding: 14px 20px; color: var(--text-secondary); font-size: 0.95rem; font-weight: 500; border-radius: var(--radius-xl); transition: all 0.2s ease; cursor: pointer; }
+        .sidebar nav ul li a:hover { background-color: var(--bg-body); color: var(--primary); }
+        .sidebar nav ul li a.active { background-color: var(--primary); color: #fff; box-shadow: 0 10px 20px rgba(10, 20, 45, 0.2); }
+        .sidebar nav ul li a .material-icons-round { font-size: 20px; }
+        .sidebar-footer { margin-top: auto; font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding-top: 20px; }
+
+        .content-wrapper { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; padding: 0; position: relative; }
+        .top-bar { padding: 30px 40px 10px 40px; display: flex; justify-content: space-between; align-items: center; background: transparent; flex-shrink: 0; }
+        .top-bar-left h4 { margin: 0; color: var(--text-secondary); font-weight: 500; font-size: 0.9rem; }
+        .top-bar-left h2 { font-size: 2rem; color: var(--primary); font-weight: 700; }
+        main { padding: 30px 40px; }
+        .page-view { animation: fadeIn 0.4s ease; }
+        .hidden-view { display: none !important; }
+        .section { margin-bottom: 30px; }
+        .section h2 { font-size: 1.4rem; margin-bottom: 20px; color: var(--primary); }
+        .card { background: var(--bg-card); border-radius: var(--radius-l); padding: 25px; display: flex; flex-direction: column; box-shadow: var(--shadow-soft); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+
+        /* Form Elements & Buttons */
+        .form-group { margin-bottom: 20px; }
+        input { 
+            padding: 12px 20px; border-radius: var(--radius-m); border: 1px solid transparent; 
+            background-color: var(--bg-body); color: var(--text-main); font-family: "DM Sans", sans-serif; 
+            font-size: 0.95rem; transition: all 0.2s; 
+            width: 100%; /* FIX: Ensures input fields fill the card width */
+        }
+        input:focus { outline: none; background-color: #fff; border: 1px solid var(--primary); box-shadow: 0 0 0 3px rgba(10, 20, 45, 0.05); }
+
+        button, .upload-btn { background: var(--primary); color: #fff; border: none; padding: 12px 24px; border-radius: var(--radius-xl); font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(10, 20, 45, 0.2); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(10, 20, 45, 0.3); }
+
+        .file-upload-wrapper { border: 2px dashed #A3AED0; border-radius: var(--radius-l); padding: 30px; text-align: center; background: #fafbff; margin: 20px 0; }
+        
+        #clearSelectionBtn { background-color: var(--accent); padding: 8px 15px; font-size: 0.85rem; border-radius: var(--radius-m); }
+        
+        /* QR & Status Messages */
+        #qr-controls, #qr-result-area { display: none; }
+        .success-msg { background-color: #e6f9f0; color: #02a362; padding: 10px; border-radius: var(--radius-s); font-weight: 500; }
+        .link-display { word-break: break-all; color: var(--primary); background: var(--bg-body); padding: 10px; border-radius: var(--radius-s); margin-top: 10px; font-size: 0.9rem; text-align: center; }
+        
+        #previewContainer img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 5px; } 
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .dashboard-layout { flex-direction: column; height: auto; overflow: auto; }
+            .sidebar { width: 100%; height: auto; padding: 15px; flex-direction: row; justify-content: space-between; align-items: center; }
+            .sidebar nav ul { flex-direction: row; flex-wrap: wrap; gap: 5px; }
+            .sidebar nav ul li a { padding: 10px; font-size: 0; }
+            .sidebar nav ul li a .material-icons-round { font-size: 24px; margin: 0; }
+            .sidebar-footer { display: none; }
+            .content-wrapper { height: auto; }
+            .top-bar { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+
+        /*---------------------------------*/
+
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 20, 45, 0.4); 
+            backdrop-filter: blur(4px);
+            display: none; /* Hidden by default */
+            justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff; padding: 40px;
+            border-radius: var(--radius-l); width: 90%; max-width: 400px;
+            text-align: center; box-shadow: var(--shadow-hover);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp { 
+            from { transform: translateY(20px); opacity: 0; } 
+            to { transform: translateY(0); opacity: 1; } 
+        }
+
+        /* Spinner Animation for button */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .spin { animation: spin 1s linear infinite; margin-right: 8px; }
+    </style>
+
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span class="material-icons-round" style="color:var(--accent);">camera</span>
+                <h1>Profilepic</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a data-view="analytics" ><span class="material-icons-round">analytics</span> Analytics</a></li>
+                    <li><a data-view="bookings"><span class="material-icons-round">calendar_today</span> Bookings</a></li>
+                    <li class="admin-only"><a data-view="users"><span class="material-icons-round">people</span> Users</a></li>
+                    <li><a data-view="payments"><span class="material-icons-round">payments</span> Payments</a></li>
+                    <li><a data-view="gallery" class="active"><span class="material-icons-round">collections</span> Gallery</a></li>
+                    <li><a data-view="transactions"><span class="material-icons-round">receipt_long</span> Transactions</a></li>
+                    <li><a data-view="notifications"><span class="material-icons-round">notifications</span> Notifications</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                © 2025 Multimedia
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <h4>Dashboard / Gallery</h4>
+                    <h2>Upload Photos</h2>
+                </div>
+                <nav>
+                    <button id="logoutBtn" class="danger-btn">
+                        <span style="display:flex; align-items:center; gap:5px;">
+                            <span class="material-icons-round" style="font-size:18px;">logout</span> Logout
+                        </span>
+                    </button>
+                </nav>
+            </div>
+
+            <main id="mainContent">
+
+                <div id="analytics-view" class="page-view hidden-view">
+                    <div class="dashboard-cards">
+                        </div>
+                </div>
+
+                <div id="bookings-view" class="page-view hidden-view">
+                    </div>
+
+                <div id="gallery-view" class="page-view">
+                    <div class="section">
+                        <h2>Upload Session</h2>
+
+                        <div class="card" style="max-width: 600px; margin-top:20px;">
+                            <h3 style="margin-bottom:15px;">Upload Customer Photo</h3>
+
+                            <form id="uploadForm">
+                                <div class="form-group">
+                                    <label for="userEmail">Customer Email</label>
+                                    <input type="email" id="userEmail" placeholder="Enter User Email" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="packageFrame">Package / Frame Name</label>
+                                    <input type="text" id="packageFrame" placeholder="e.g. Suba Sand Dunes - Package A" required>
+                                </div>
+
+                                <div class="file-upload-wrapper">
+                                    <span class="material-icons-round" style="font-size:30px; color:#A3AED0;">cloud_upload</span>
+                                    <p style="margin:5px 0 15px; color:#A3AED0;">Drag files or click to upload</p>
+                                    <input type="file" id="customerPhoto" name="photos" accept="image/*" multiple required style="width: auto; background: white; border: 1px solid #ddd;"/> 
+                                </div>
+
+                                <div id="previewContainer" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"></div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                    <button type="button" class="upload-btn" id="clearSelectionBtn">
+                                        Clear Selection ❌
+                                    </button>
+                                </div>
+
+                                <button id="submitBtn" type="submit" class="upload-btn" style="width:100%;">Upload Photo(s)</button>
+
+                                <div id="status-message" style="margin-top: 15px; text-align: center;"></div>
+                            </form>
+
+                            <div id="qr-controls" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; text-align: center;">
+                                <p class="success-msg">Uploads Complete. Generate Customer Link?</p>
+                                
+                                <button id="generateQRBtn" style="width: 100%;">Generate Gallery Link & QR Code</button>
+                                
+                                <div id="qr-result-area" style="margin-top: 20px;">
+                                    <p>Scan this code to view the customer's full gallery:</p>
+                                    <div id="qrcode" style="display: flex; justify-content: center; margin: 15px 0;"></div>
+                                    <div class="link-display" id="galleryLink"></div>
+                                    <button onclick="resetForm()" style="margin-top: 20px; background: var(--text-secondary); color: white;">Upload New Batch</button>
+                                </div>
+                            </div>
+
+                            <div id="errorModal" class="modal-overlay">
+                                <div class="modal-content">
+                                    <span class="material-icons-round" style="font-size: 48px; color: #ff5b5b; margin-bottom: 15px;">error_outline</span>
+                                    <h3 style="margin-bottom: 10px;">User Not Found</h3>
+                                    <p id="errorText" style="color: var(--text-secondary); margin-bottom: 20px;">
+                                        No registered customer found with that email address.
+                                    </p>
+                                    <button onclick="closeErrorModal()" class="upload-btn" style="background-color: var(--text-secondary);">Close</button>
+                                </div>
+                            </div>
+                            
+                        </div> 
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+
+    <!-------------------------------------------->
+
+    <script>
+    // Logout Logic
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = "../index.html";
+    });
+
+    // View Navigation Logic
+    document.querySelectorAll('.sidebar nav a').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetViewId = this.getAttribute('data-view') + '-view';
+            document.querySelectorAll('.sidebar nav a').forEach(link => link.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.page-view').forEach(view => view.classList.add('hidden-view'));
+            const targetView = document.getElementById(targetViewId);
+            if (targetView) targetView.classList.remove('hidden-view');
+            document.querySelector('.content-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    // Modal Override
+    const originalGetElement = document.getElementById;
+    window.openModalOverride = function(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+
+    console.log("Script is running!");
+
+    // 1. Element References
+    const form = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMessage = document.getElementById('status-message');
+    const userEmailInput = document.getElementById('userEmail'); 
+    const customerPhotoInput = document.getElementById('customerPhoto');
+    const qrControls = document.getElementById('qr-controls');
+    const generateQRBtn = document.getElementById('generateQRBtn');
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+    const previewContainer = document.getElementById('previewContainer');
+    const errorModal = document.getElementById('errorModal'); 
+
+    let currentUserID = null;
+
+    // ----------------------------------------------------
+    // 2. HELPER: Find User ID by Email (Connects to server.js)
+    // ----------------------------------------------------
+    async function findUserByEmail(email) {
+        try {
+            // Calls your server.js route: /api/users/find
+            const response = await fetch(`/api/users/find?email=${encodeURIComponent(email)}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) return null; 
+
+            const userData = await response.json();
+            return userData.id; 
+        } catch (error) {
+            console.error("Search Error:", error);
+            return null;
+        }
+    }
+
+    // ----------------------------------------------------
+    // 3. Main Upload Logic
+    // ----------------------------------------------------
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Get Token for Admin Upload
+        const token = localStorage.getItem('token'); 
+        if (!token) {
+            alert("You are not logged in!");
+            window.location.href = "../index.html";
+            return;
+        }
+
+        // A. Validate Files
+        const files = customerPhotoInput.files;
+        if (files.length === 0) {
+            statusMessage.innerHTML = '<span style="color:red;">Please select at least one file.</span>';
+            return;
+        }
+
+        const packageFrame = document.getElementById('packageFrame').value;
+        const targetEmail = userEmailInput.value;
+
+        // B. Loading State (Checking User)
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Verifying User...';
+        statusMessage.innerHTML = '';
+
+        // C. Verify Email Exists & Get ID (REAL LOGIC)
+        // ============================================
+        let resolvedUserID = await findUserByEmail(targetEmail);
+        // ============================================
+
+        // D. Handle User Not Found
+        if (!resolvedUserID) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Upload Photo(s)';
+            showErrorModal(`We could not find a customer with the email: <b>${targetEmail}</b>.<br>Please register them first.`);
+            return; 
+        }
+
+        // E. Proceed with Upload (User Found)
+        submitBtn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Uploading...';
+        statusMessage.innerHTML = `<span style="color:#3498db;">User Verified (ID: ${resolvedUserID}). Uploading 0 of ${files.length}...</span>`;
+        
+        let successfulUploads = 0;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            const formData = new FormData();
+            formData.append('userID', resolvedUserID); 
+            formData.append('packageFrame', packageFrame);
+            formData.append('customerPhoto', file);
+
+            try {
+                // REAL API CALL TO UPLOAD
+                const response = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }, // Send Token!
+                    body: formData
+                });
+
+                if (response.ok) {
+                    successfulUploads++;
+                    statusMessage.innerHTML = `<span style="color:#3498db;">Uploaded ${successfulUploads} of ${files.length} files...</span>`;
+                } else {
+                    const errData = await response.json();
+                    statusMessage.innerHTML += `<br><span style="color:orange;">Failed ${file.name}: ${errData.message}</span>`;
+                }
+
+            } catch (error) {
+                statusMessage.innerHTML += `<br><span style="color:red;">Network Error on ${file.name}.</span>`;
+            }
+        }
+        
+        // F. Final State Update
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Upload Photo(s)';
+        
+        customerPhotoInput.value = null; 
+        previewContainer.innerHTML = '';
+        
+        userEmailInput.readOnly = true; 
+        currentUserID = resolvedUserID; 
+
+        if (successfulUploads > 0) {
+            statusMessage.innerHTML = `<span style="color:#27ae60;">✅ Upload Complete! Added for ${targetEmail}.</span>`;
+            qrControls.style.display = 'block'; 
+        } else {
+            statusMessage.innerHTML = `<span style="color:red;">❌ Upload failed. Check console.</span>`;
+        }
+    });
+
+    // ----------------------------------------------------
+    // 4. Modal Functions
+    // ----------------------------------------------------
+    function showErrorModal(msg) {
+        document.getElementById('errorText').innerHTML = msg;
+        errorModal.style.display = 'flex';
+    }
+
+    function closeErrorModal() {
+        errorModal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == errorModal) {
+            closeErrorModal();
+        }
+    }
+
+    // ----------------------------------------------------
+    // 5. Existing Helpers (QR, Preview, Clear)
+    // ----------------------------------------------------
+    generateQRBtn.addEventListener('click', () => {
+        if (!currentUserID) { alert("No upload session found."); return; }
+        
+        generateQRBtn.style.display = 'none';
+        document.getElementById('qr-result-area').style.display = 'block';
+
+        // Use IP Address if testing on phone, otherwise localhost
+        const host = window.location.host; 
+        const galleryUrl = `${window.location.protocol}//${host}/usergallery.html?uid=${currentUserID}`;
+        
+        document.getElementById('galleryLink').innerText = galleryUrl;
+        document.getElementById('qrcode').innerHTML = ""; 
+
+        new QRCode(document.getElementById("qrcode"), {
+            text: galleryUrl, width: 150, height: 150,
+            colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
+        });
+    });
+
+    function handleFileSelect(event) {
+        previewContainer.innerHTML = '';
+        const files = event.target.files;
+        if (files.length === 0) return;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file.type.startsWith('image/')) continue;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgDiv = document.createElement('div');
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '100px'; 
+                img.style.height = '100px'; 
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '5px';
+                imgDiv.appendChild(img);
+                previewContainer.appendChild(imgDiv);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function clearSelection() {
+        customerPhotoInput.value = null; 
+        previewContainer.innerHTML = ''; 
+    }
+
+    customerPhotoInput.addEventListener('change', handleFileSelect);
+    clearSelectionBtn.addEventListener('click', clearSelection);
+
+    window.resetForm = function() {
+        form.reset();
+        userEmailInput.readOnly = false;
+        qrControls.style.display = 'none';
+        document.getElementById('qr-result-area').style.display = 'none';
+        statusMessage.innerHTML = '';
+        generateQRBtn.style.display = 'block';
+        currentUserID = null;
+        previewContainer.innerHTML = '';
+    }
+</script>
+</body>
+</html>

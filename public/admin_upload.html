@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Upload Dashboard - PPM</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; height: 100vh; margin: 0; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background-color: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; }
+        .sidebar h2 { margin-top: 0; }
+        .nav-link { color: #ecf0f1; text-decoration: none; padding: 10px; margin: 5px 0; border-radius: 4px; display: block; }
+        .nav-link:hover, .nav-link.active { background-color: #34495e; }
+        .logout { margin-top: auto; background: #c0392b; text-align: center; cursor: pointer; }
+
+        /* Main Content */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+        input[type="text"], input[type="number"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        
+        button.upload-btn { width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
+        button.upload-btn:hover { background-color: #2ecc71; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        /* Results Section */
+        #result-area { margin-top: 30px; text-align: center; display: none; border-top: 1px solid #eee; padding-top: 20px; }
+        #qrcode { margin-top: 15px; display: flex; justify-content: center; }
+        .success-msg { color: #27ae60; font-weight: bold; margin-bottom: 10px; }
+        .link-display { background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd; word-break: break-all; margin-top: 10px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>PPM Admin</h2>
+        <a href="#" class="nav-link active">📸 Upload Photo</a>
+        <a href="#" class="nav-link">📂 Folder Manager (Coming Soon)</a>
+        <a href="#" class="nav-link">👥 User List (Coming Soon)</a>
+        <a onclick="logout()" class="nav-link logout">Logout</a>
+    </div>
+
+    <div class="main-content">
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 25px;">Upload Customer Photo</h2>
+            
+           <form id="uploadForm">
+              <div class="form-group">
+                  <label for="userID">Target User ID</label>
+                  <input type="number" id="userID" placeholder="Enter User ID" required>
+                  <small style="color: #666;">Enter the ID of the registered customer.</small>
+              </div>
+
+              <div class="form-group">
+                  <label for="packageFrame">Package / Frame Name</label>
+                  <input type="text" id="packageFrame" placeholder="e.g. Suba Sand Dunes - Package A" required>
+              </div>
+
+              <div class="form-group">
+                  <label for="customerPhoto">Select Photos (Multiple allowed)</label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                      <input type="file" id="customerPhoto" accept="image/*" multiple required style="flex-grow: 1;">
+                      <button type="button" class="upload-btn" id="clearSelectionBtn" 
+                              style="width: auto; padding: 10px 15px; background-color: #f39c12; font-size: 14px; margin: 0;">
+                          Clear ❌
+                      </button>
+                  </div>
+              </div>
+              <div id="previewContainer" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"></div>
+
+              <button type="submit" class="upload-btn" id="submitBtn">Upload Photo(s) ☁️</button>
+
+              <div id="status-message" style="margin-top: 15px;"></div>
+          </form>
+
+        <div id="qr-controls" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; text-align: center; display: none;">
+            <p class="success-msg">Uploads Complete. Generate Customer Link?</p>
+            <button id="generateQRBtn" class="upload-btn" style="width: 50%; margin: 10px auto;">Generate Gallery Link & QR Code</button>
+            
+            <div id="qr-result-area" style="margin-top: 20px; display: none;">
+                <p>Scan this code to view the customer's full gallery:</p>
+                <div id="qrcode" style="display: flex; justify-content: center; margin: 15px 0;"></div>
+                <div class="link-display" id="galleryLink"></div>
+            </div>
+</div>
+
+            <div id="result-area">
+                <div class="success-msg">✅ Upload Successful!</div>
+                <p>Scan this code to view the gallery:</p>
+                
+                <div id="qrcode"></div>
+                
+                <div class="link-display" id="galleryLink"></div>
+                <button onclick="resetForm()" style="margin-top: 20px; background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Upload Another</button>
+            </div>
+        </div>
+    </div>
+
+  <script>
+    // 1. Auth Check (Same as before)
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!token || !user.role || user.role !== 'admin') {
+        alert('Access Denied: Admins only.');
+        window.location.href = 'login.html';
+    }
+
+    const form = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMessage = document.getElementById('status-message');
+    const userIDInput = document.getElementById('userID');
+    const customerPhotoInput = document.getElementById('customerPhoto');
+    const qrControls = document.getElementById('qr-controls');
+    const generateQRBtn = document.getElementById('generateQRBtn');
+
+    // Store the last successful User ID for QR generation
+    let currentUserID = null;
+
+    // 2. Handle Continuous Batch Upload
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const files = customerPhotoInput.files;
+        if (files.length === 0) {
+            statusMessage.innerHTML = '<span style="color:red;">Please select at least one file.</span>';
+            return;
+        }
+        
+        const packageFrame = document.getElementById('packageFrame').value;
+        const targetUserID = userIDInput.value;
+
+        if (!targetUserID) {
+            statusMessage.innerHTML = '<span style="color:red;">Target User ID is required.</span>';
+            return;
+        }
+
+        // Set UI State
+        submitBtn.disabled = true;
+        statusMessage.innerHTML = '<span style="color:#3498db;">Uploading 0 of ' + files.length + ' files...</span>';
+        
+        let successfulUploads = 0;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            // 2a. Build FormData for each file
+            const formData = new FormData();
+            formData.append('userID', targetUserID);
+            formData.append('packageFrame', packageFrame);
+            formData.append('customerPhoto', file);
+
+            try {
+                const response = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    successfulUploads++;
+                    statusMessage.innerHTML = `<span style="color:#3498db;">Uploaded ${successfulUploads} of ${files.length} files...</span>`;
+                } else {
+                    const data = await response.json();
+                    statusMessage.innerHTML += `<br><span style="color:orange;">Warning: Failed to upload ${file.name}: ${data.message || 'Server error'}</span>`;
+                }
+            } catch (error) {
+                statusMessage.innerHTML += `<br><span style="color:red;">Network Error on ${file.name}.</span>`;
+            }
+        }
+        
+        // 2b. Final State Update
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Upload Photo(s) ☁️';
+        customerPhotoInput.value = null; // Clear file input only
+        userIDInput.readOnly = true; // Lock user ID input
+        currentUserID = targetUserID; // Save the ID for QR generation
+
+        statusMessage.innerHTML = `<span style="color:#27ae60;">✅ Upload Complete! ${successfulUploads} files added for User ID ${currentUserID}.</span>`;
+        qrControls.style.display = 'block'; // Show QR button controls
+    });
+
+    // 3. Handle QR Code Generation on Button Click
+    generateQRBtn.addEventListener('click', () => {
+        if (!currentUserID) {
+            alert("Please upload at least one batch first.");
+            return;
+        }
+        
+        // Hide the button and show results
+        generateQRBtn.style.display = 'none';
+        document.getElementById('qr-result-area').style.display = 'block';
+
+        // NOTE: The link is general, but the user must log in as the correct customer ID.
+        // In a real-world app, you might generate a user-specific tokenized link.
+        const galleryUrl = `${window.location.protocol}//${window.location.host}/usergallery.html`;
+        
+        document.getElementById('galleryLink').innerText = galleryUrl;
+        document.getElementById('qrcode').innerHTML = "";
+
+        new QRCode(document.getElementById("qrcode"), {
+            text: galleryUrl,
+            width: 150,
+            height: 150,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    });
+
+    // 4. Logout Function
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = 'login.html';
+    }
+    
+    // 5. Reset button for easy reuse
+    window.resetForm = function() {
+        form.reset();
+        userIDInput.readOnly = false;
+        qrControls.style.display = 'none';
+        document.getElementById('qr-result-area').style.display = 'none';
+        statusMessage.innerHTML = '';
+        generateQRBtn.style.display = 'block';
+        currentUserID = null;
+    }
+
+
+    // Image upload preview
+      function handleFileSelect(event) {
+      const previewContainer = document.getElementById('previewContainer');
+      previewContainer.innerHTML = ''; // Clear previous previews
+
+      const files = event.target.files;
+
+      if (files.length === 0) return;
+
+      for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+
+          // Ensure the file is an image before trying to read it
+          if (!file.type.startsWith('image/')) { continue; }
+
+          const reader = new FileReader();
+
+          reader.onload = (e) => {
+              const imgDiv = document.createElement('div');
+              imgDiv.style.position = 'relative';
+              
+              const img = document.createElement('img');
+              img.src = e.target.result; // The temporary data URL
+              img.style.width = '100px';
+              img.style.height = '100px';
+              img.style.objectFit = 'cover';
+              img.style.borderRadius = '4px';
+
+              const fileNameOverlay = document.createElement('div');
+              fileNameOverlay.innerText = file.name;
+              fileNameOverlay.style.cssText = `
+                  position: absolute; 
+                  bottom: 0; 
+                  left: 0; 
+                  width: 100%; 
+                  background: rgba(0, 0, 0, 0.6); 
+                  color: white; 
+                  font-size: 10px; 
+                  padding: 2px 0; 
+                  text-align: center;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  border-radius: 0 0 4px 4px;
+              `;
+
+              imgDiv.appendChild(img);
+              imgDiv.appendChild(fileNameOverlay);
+              previewContainer.appendChild(imgDiv);
+          };
+
+          // Read the file's contents as a data URL (Base64 encoded string)
+          reader.readAsDataURL(file);
+      }
+  }
+
+  // Attach the listener to the file input
+  document.getElementById('customerPhoto').addEventListener('change', handleFileSelect);
+
+  function clearSelection() {
+        // Clear the file input element's value (this deselects the files)
+        customerPhotoInput.value = null; 
+        
+        // Clear the visible image previews
+        document.getElementById('previewContainer').innerHTML = ''; 
+    }
+
+    // Attach the new function to the Clear button
+    clearSelectionBtn.addEventListener('click', clearSelection);
+    // ----------------------------------------------------
+
+
+  </script>
+</body>
+</html>

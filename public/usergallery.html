@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Photo Gallery - PPM</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        
+        /* Navbar */
+        .navbar { background-color: #333; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { margin: 0; font-size: 1.2rem; }
+        .logout-btn { background-color: #d9534f; color: white; border: none; padding: 5px 15px; cursor: pointer; border-radius: 4px; }
+
+        /* Gallery Grid */
+        .gallery-container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        
+        /* Photo Card */
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .card img { width: 100%; hieght: 200px; object-fit: cover; display: block; background-color: #eee; }
+        .card-body { padding: 15px; }
+        .card-title { margin: 0 0 10px; font-size: 1rem; font-weight: bold; }
+        .card-text { margin: 0; color: #666; font-size: 0.9rem; }
+        
+        /* Loading/Empty States */
+        #loading { text-align: center; margin-top: 50px; font-size: 1.2rem; color: #666; }
+        .error-msg { color: red; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h1>📸 My Gallery</h1>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="gallery-container">
+        <div id="loading">Loading your photos...</div>
+        <div class="grid" id="galleryGrid"></div>
+    </div>
+
+    <script>
+        // 1. Check Auth on Load
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // 2. Fetch Gallery Data
+        async function loadGallery() {
+            try {
+                const response = await fetch('/api/user/gallery', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load gallery');
+
+                const files = await response.json();
+                const grid = document.getElementById('galleryGrid');
+                const loading = document.getElementById('loading');
+                
+                loading.style.display = 'none';
+
+                if (files.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center; width:100%;">No photos found for this account.</p>';
+                    return;
+                }
+
+                // 3. Render Each Photo
+                files.forEach(async (file) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    // We create an Image element to load the data safely
+                    const img = document.createElement( 'img');
+                    img.alt = "Loading...";
+
+                    // --- NEW: Fetch logic for WATERMARKED PREVIEW ---
+                    // We add ?mode=preview to the URL
+                    fetch(`/api/user/image/${file.drive_file_id}?mode=preview`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                    .then(res => res.blob())
+                    .then(blob => {
+                        img.src = URL.createObjectURL(blob);
+                    });
+                    
+                    // --- HTML Structure ---
+                    card.innerHTML = `
+                      <div class="img-container"></div> 
+                        <div class="card-body">
+                            <h3 class="card-title">${file.package_frame}</h3>
+                            <p class="card-text">${new Date(file.upload_date).toLocaleDateString()}</p>
+                            
+                            <button onclick="downloadImage('${file.drive_file_id}', '${file.filename}')" 
+                                    style="width:100%; padding:8px; background:#333; color:white; border:none; cursor:pointer; margin-top:10px;">
+                                Download Original ⬇️
+                            </button>
+                        </div>
+                      `;
+                      // Append the image we created above into the container
+                      card.querySelector('.img-container').appendChild(img);
+                     grid.appendChild(card);
+
+                    // 4. Secure Image Fetching (The Magic Part)
+                    // We fetch the image data separately so we can send the Token header
+                    try {
+                        const imgRes = await fetch(`/api/user/image/${file.drive_file_id}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if(imgRes.ok) {
+                            const blob = await imgRes.blob();
+                            const imgUrl = URL.createObjectURL(blob);
+                            document.getElementById(`img-${file.drive_file_id}`).src = imgUrl;
+                        }
+                    } catch (err) {
+                        console.error("Error loading image", err);
+                    }
+                });
+
+            } catch (error) {
+                document.getElementById('loading').innerText = 'Error loading gallery. Please log in again.';
+                console.error(error);
+            }
+        }
+
+        // 5. Logout Function
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        // Run on page load
+        loadGallery();
+
+        async function downloadImage(fileId, filename) {
+        try {
+            // Request the "download" mode (Clean image)
+            const response = await fetch(`/api/user/image/${fileId}?mode=download`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename; // Force download with original filename
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                alert("Download started!");
+            } else {
+                alert("Download failed. You may not have permission.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error downloading file.");
+        }
+    }
+    </script>
+</body>
+</html>

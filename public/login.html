@@ -249,7 +249,7 @@ body {
             <label for="confirmPassword">Password</label>
             <div class="password-wrapper">
               <input type="password" id="password" placeholder="••••••••" required />
-              <span class="toggle-eye" onclick="togglePassword('Password', this)">
+              <span class="toggle-eye" onclick="togglePassword('password', this)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </span>
             </div>
@@ -295,7 +295,7 @@ body {
             if (response.ok) {
                 // SUCCESS: Store the JWT token and user info
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('userRole', data.user.role);
+                localStorage.setItem('user', JSON.stringify(data.user));;
                 
                 // Redirect based on role (Initial simple routing)
                 if (data.user.role === 'admin' || data.user.role === 'staff') {
