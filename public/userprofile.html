@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile | ProfilePic Multimedia</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="nav.css">
+
+  <style>
+    /* ============================ */
+    /* VARIABLES (From your reference) */
+    /* ============================ */
+    :root {
+      --main-header-font: 'Playfair Display', serif;
+      --section-font: 'DM Sans', sans-serif;
+      --body-font: 'Inter', sans-serif;
+      
+      /* Colors */
+      --bgwhite: #FAFAFA;
+      --text-color: #0A142D; /* Navy */
+      --brand-color: #f4981e; /* Light Orange */
+      --dark-color: #ce6826;  /* Dark Orange Accent */
+      --light-color: #f9bf5f;
+      --grey-light: #e0e0e0;
+    }
+
+    /* ============================ */
+    /* GLOBAL RESET */
+    /* ============================ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background-color: var(--bgwhite);
+      color: var(--text-color);
+      font-family: var(--body-font);
+      line-height: 1.6;
+    }
+
+
+    /* ============================ */
+    /* PROFILE HERO SECTION         */
+    /* ============================ */
+    .profile-hero {
+        background: linear-gradient(rgba(10, 20, 45, 0.8), rgba(10, 20, 45, 0.9));
+        color: white;
+        padding: 60px 5% 80px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .profile-avatar {
+        margin-top: 80px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid var(--brand-color);
+        object-fit: cover;
+    }
+
+    .profile-info h1 {
+        margin-top: 80px;
+        font-family: var(--main-header-font);
+        font-size: 32px;
+        margin-bottom: 5px;
+    }
+
+    .profile-info p {
+        font-family: var(--section-font);
+        color: #ccc;
+        font-size: 16px;
+    }
+
+    .edit-badge {
+        background: var(--dark-color);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-family: var(--section-font);
+        cursor: pointer;
+        margin-top: 10px;
+        display: inline-block;
+    }
+
+    /* ============================ */
+    /* TAB NAVIGATION               */
+    /* ============================ */
+    .profile-tabs-container {
+        background: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .profile-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .tab-btn {
+        padding: 20px 5px;
+        background: none;
+        border: none;
+        font-family: var(--section-font);
+        font-weight: 700;
+        font-size: 16px;
+        color: #888;
+        cursor: pointer;
+        position: relative;
+        transition: 0.3s;
+    }
+
+    .tab-btn:hover { color: var(--dark-color); }
+    
+    .tab-btn.active { color: var(--text-color); }
+    
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; width: 100%;
+        height: 3px;
+        background-color: var(--dark-color);
+    }
+
+    /* ============================ */
+    /* MAIN CONTENT AREA            */
+    /* ============================ */
+    .profile-content {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+        min-height: 50vh;
+    }
+
+    /* --- TAB LOGIC CSS --- */
+    .tab-content {
+        display: none; /* Hides all tabs by default */
+        animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .tab-content.active {
+        display: block; /* Shows only the active tab */
+    }
+
+    /* Simple fade animation for smooth switching */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* CARDS & FORMS */
+    .content-card {
+        background: white;
+        padding: 40px;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+    }
+
+    .section-title {
+        font-family: var(--main-header-font);
+        color: var(--text-color);
+        font-size: 28px;
+        margin-bottom: 25px;
+        border-bottom: 2px solid var(--brand-color);
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    
+    .form-group label {
+        display: block;
+        font-family: var(--section-font);
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: #555;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: var(--body-font);
+        font-size: 16px;
+    }
+
+    .btn-primary {
+        background-color: var(--text-color);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        font-family: var(--section-font);
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+    .btn-primary:hover { background-color: var(--dark-color); }
+
+    /* GALLERY GRID */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .gallery-item {
+        height: 250px;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .gallery-item img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .gallery-item:hover img { transform: scale(1.05); }
+
+    .gallery-actions {
+        position: absolute;
+        bottom: 0; left: 0; width: 100%;
+        background: rgba(10, 20, 45, 0.8);
+        color: white;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+    }
+
+    /* TABLES (Transactions/Bookings) */
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--body-font);
+    }
+
+    .custom-table th {
+        text-align: left;
+        padding: 15px;
+        background-color: #f8f8f8;
+        color: var(--text-color);
+        font-family: var(--section-font);
+        font-weight: 700;
+    }
+
+    .custom-table td {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        color: #555;
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-completed { background: #e8f5e9; color: #2e7d32; }
+    .status-pending { background: #fff3e0; color: #ef6c00; }
+    .status-cancelled { background: #ffebee; color: #c62828; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .profile-hero { flex-direction: column; text-align: center; }
+        .form-grid { grid-template-columns: 1fr; }
+        .profile-tabs { gap: 20px; font-size: 14px; overflow-x: auto; justify-content: flex-start; }
+        .tab-btn { white-space: nowrap; }
+        .nav-links { display: none; } /* Standard Mobile nav behavior assumed */
+    }
+
+    /*=================================*/
+    /* The Grid Container */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive columns */
+            gap: 25px; /* Space between cards */
+            margin-top: 20px;
+        }
+
+        /* The Card shell */
+        .card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden; /* Keeps image corners rounded */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        /* The Image Container - Forces the Height */
+        .img-container {
+            width: 100%;
+            height: 220px; /* FIXED HEIGHT: This makes them all the same size */
+            background-color: #f0f0f0; /* Grey background while loading */
+            position: relative;
+        }
+
+        /* The Image itself - The "Cover" magic */
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Crops image to fill the box perfectly */
+            object-position: center;
+            display: block;
+        }
+
+        /* Card Text Area */
+        .card-body {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1; /* Pushes button to bottom if text varies */
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-text {
+            font-size: 13px;
+            color: #888;
+            margin: 0;
+        }
+
+        /* Download Button Styling */
+        .download-btn {
+            margin-top: auto; /* Pushes button to bottom */
+            width: 100%;
+            padding: 10px;
+            background-color: var(--text-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .download-btn:hover {
+            background-color: var(--dark-color);
+        }
+
+        /*=================================*/
+        /* --- LARGE IMAGE MODAL (Preview) --- */
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            max-width: 80%;
+            max-height: 80vh;
+            border-radius: 5px;
+            animation: zoom 0.3s;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px; right: 30px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #caption {
+            color: #ccc;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* --- SMALL STATUS MODAL (Download Alerts) --- */
+        .modal-small {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 2000; /* Higher than image modal */
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); /* Dim background */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content-small {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s;
+        }
+
+        .close-small {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        /* Update this specific ID in your CSS */
+        #statusMessage {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            
+            /* ADD THESE LINES TO FIX OVERFLOW: */
+            word-wrap: break-word;       /* Legacy support */
+            overflow-wrap: break-word;   /* Standard */
+            word-break: break-word;      /* Forces long filenames to wrap */
+            max-width: 100%;             /* Ensures it doesn't exceed the modal width */
+        }
+
+        @keyframes zoom { from {transform:scale(0)} to {transform:scale(1)} }
+        @keyframes slideDown { from {transform:translateY(-20px); opacity:0;} to {transform:translateY(0); opacity:1;} }
+        
+
+        /* The Modal (background) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top of everything */
+            padding-top: 50px; /* Location of the box */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+        }
+
+        /* Modal Content (image) */
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh; /* Ensure it doesn't go taller than screen */
+            object-fit: contain; /* Ensure the whole image is visible */
+            border-radius: 5px;
+            animation-name: zoom;
+            animation-duration: 0.2s;
+        }
+
+        /* Caption of Modal Image */
+        #caption {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+            text-align: center;
+            color: #ccc;
+            padding: 10px 0;
+            height: 50px;
+            font-family: var(--section-font);
+        }
+
+        /* Add Animation */
+        @keyframes zoom {
+            from {transform:scale(0)} 
+            to {transform:scale(1)}
+        }
+
+        /* The Close Button */
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            z-index: 1001;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* 100% Image Width on Smaller Screens */
+        @media only screen and (max-width: 700px){
+            .modal-content {
+                width: 100%;
+            }
+        }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <!-- Replace this with your actual logo image -->
+        <img src="logos/logo3.png" alt="Profilepic Multimedia Logo" />
+      </div>
+
+      <nav class="nav-links">
+        <a href="index.html" class="active">Home</a>
+        <a href="about.html">About Us</a>
+        <a href="package.html">Package & Booking</a>
+        <!--
+        <div class="dropdown">
+          <button class="dropbtn">Services ▾</button> 
+          <div class="dropdown-content">
+            <a href="service_and_packages.html">Photography Packages</a>
+            <a href="#locations-section">Locations</a>
+            <a href="#how-it-works">Booking Guide</a>
+          </div>
+        </div>-->
+
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html">Contact</a>
+        
+        <div class="account-icon" id="account-nav">
+          <!-- This will be updated by JS -->
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <section class="profile-hero">
+    <img src="https://i.pravatar.cc/300?img=10" alt="User Profile" class="profile-avatar">
+    <div class="profile-info">
+        <h1>Hello, Maria Dela Cruz</h1>
+        <p>Member since 2024 | Traveler & Explorer</p>
+        <div class="edit-badge">
+            <i class="fa-solid fa-pen"></i> Edit Avatar
+        </div>
+    </div>
+  </section>
+
+  <div class="profile-tabs-container">
+      <div class="profile-tabs">
+          <button class="tab-btn active" onclick="openTab(event, 'gallery')">My Gallery</button>
+          <button class="tab-btn" onclick="openTab(event, 'account')">Profile Details</button>
+          <button class="tab-btn" onclick="openTab(event, 'bookings')">My Bookings</button>
+          <button class="tab-btn" onclick="openTab(event, 'transactions')">Transactions</button>
+          <button class="tab-btn" onclick="openTab(event, 'security')">Security</button>
+      </div>
+  </div>
+
+  <div class="profile-content">
+
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImg">
+        <div id="caption"></div>
+    </div>
+
+    <div id="statusModal" class="modal-small">
+        <div class="modal-content-small">
+            <span class="close-small" id="closeStatusX">&times;</span>
+            
+            <div id="statusIcon" style="font-size: 40px; margin-bottom: 15px;"></div>
+            
+            <h3 id="statusTitle" style="margin-bottom: 10px; color: var(--text-color);"></h3>
+            <p id="statusMessage" style="color: #666; font-size: 14px; margin-bottom: 20px;"></p>
+            
+            <button id="statusCloseBtn" class="btn-primary" style="padding: 8px 25px;">Close</button>
+        </div>
+    </div>
+
+      <div id="gallery" class="tab-content active">
+          <h2 class="section-title">Your Travel Memories</h2>
+          
+          <div class="gallery-container">
+              <div id="loading" style="text-align:center; padding: 20px;">
+                  <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px;"></i> 
+                  <p>Loading your photos...</p>
+              </div>
+              
+              <div class="grid" id="galleryGrid"></div>
+          </div>
+
+          <script>
+          // Check Auth on Load
+          const token = localStorage.getItem('token');
+          if (!token) {
+              window.location.href = 'login.html';
+          }
+
+          // =========================================
+          // MODAL SETUP VARIABLES
+          // =========================================
+          // Get the modal
+          var modal = document.getElementById("imageModal");
+          // Get the image and caption text inside the modal
+          var modalImg = document.getElementById("modalImg");
+          var captionText = document.getElementById("caption");
+          // Get the <span> element that closes the modal
+          var span = document.getElementsByClassName("close")[0];
+          // --- DOM ELEMENTS FOR PROFILE ---
+          const firstNameInput = document.getElementById('firstNameInput');
+          const lastNameInput = document.getElementById('lastNameInput');
+          const emailInput = document.getElementById('emailInput');
+          const phoneInput = document.getElementById('phoneInput');
+          const saveProfileBtn = document.getElementById('saveProfileBtn');
+
+          // --- 1. FETCH USER DETAILS ---
+            async function loadUserProfile() {
+                try {
+                    // Assuming your backend has this endpoint
+                    const response = await fetch('/api/user/profile', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (!response.ok) throw new Error('Failed to load profile');
+
+                    const user = await response.json();
+
+                    // Populate fields
+                    // NOTE: Adjust 'first_name', 'last_name', etc. to match your exact Database Column names
+                    firstNameInput.value = user.first_name || ""; 
+                    lastNameInput.value = user.last_name || "";
+                    emailInput.value = user.email || "";
+                    
+                    // Handle Phone: If null/empty in DB, placeholder "Add phone number" shows automatically
+                    phoneInput.value = user.phone_number || ""; 
+
+                } catch (error) {
+                    console.error("Profile Load Error:", error);
+                    // Optional: Show error in console or small alert, 
+                    // but usually better to just leave fields blank or placeholders
+                }
+            }
+
+            // --- 2. SAVE USER DETAILS ---
+            async function saveUserProfile() {
+                const updatedData = {
+                    first_name: firstNameInput.value,
+                    last_name: lastNameInput.value,
+                    phone_number: phoneInput.value
+                    // We do NOT send email back, as it's read-only
+                };
+
+                // Show "Saving..." status
+                window.showStatusModal(
+                    "Saving Changes...", 
+                    "Updating your profile information.", 
+                    '<i class="fa-solid fa-spinner fa-spin"></i>', 
+                    'var(--brand-color)'
+                );
+
+                try {
+                    const response = await fetch('/api/user/profile', {
+                        method: 'PUT', // or 'POST', depending on your backend route
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` 
+                        },
+                        body: JSON.stringify(updatedData)
+                    });
+
+                    if (response.ok) {
+                        window.showStatusModal(
+                            "Success! ✅", 
+                            "Your profile details have been updated.", 
+                            '<i class="fa-solid fa-check-circle"></i>', 
+                            'green'
+                        );
+                    } else {
+                        throw new Error("Update failed");
+                    }
+                } catch (error) {
+                    console.error(error);
+                    window.showStatusModal(
+                        "Update Failed ❌", 
+                        "Something went wrong. Please try again.", 
+                        '<i class="fa-solid fa-circle-xmark"></i>', 
+                        'red'
+                    );
+                }
+            }
+
+            // --- LISTENERS ---
+            if(saveProfileBtn) {
+                saveProfileBtn.addEventListener('click', saveUserProfile);
+            }
+
+          // When the user clicks on <span> (x), close the modal
+          span.onclick = function() { 
+            modal.style.display = "none";
+          }
+          // Close modal if user clicks anywhere outside the image
+          window.onclick = function(event) {
+              if (event.target == modal) {
+                  modal.style.display = "none";
+              }
+          }
+          // =========================================
+
+
+          async function loadGallery() {
+              try {
+                  const response = await fetch('/api/user/gallery', {
+                      headers: { 'Authorization': `Bearer ${token}` }
+                  });
+
+                  if (!response.ok) throw new Error('Failed to load gallery');
+
+                  const files = await response.json();
+                  const grid = document.getElementById('galleryGrid');
+                  const loading = document.getElementById('loading');
+                  
+                  loading.style.display = 'none';
+
+                  if (files.length === 0) {
+                      grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">No photos found for this account.</p>';
+                      return;
+                  }
+
+                  // Render Each Photo
+                  files.forEach((file) => {
+                      const card = document.createElement('div');
+                      card.className = 'card';
+
+                      // Prepare Image Element
+                      const img = document.createElement('img');
+                      img.alt = file.package_frame || "Travel Photo";
+                      
+                      // --- NEW: Add pointer cursor so they know it's clickable ---
+                      img.style.cursor = "pointer"; 
+                      
+                      // Fetch Watermarked Preview
+                      fetch(`/api/user/image/${file.drive_file_id}?mode=preview`, {
+                          headers: { 'Authorization': `Bearer ${token}` }
+                      })
+                      .then(res => res.blob())
+                      .then(blob => {
+                          // We create the URL once
+                          const objectUrl = URL.createObjectURL(blob);
+                          img.src = objectUrl;
+
+                          // --- NEW: ADD CLICK EVENT FOR MODAL ---
+                          img.onclick = function(){
+                              modal.style.display = "block";
+                              // Reuse the same watermarked URL for the large modal view
+                              modalImg.src = this.src;
+                              captionText.innerHTML = file.package_frame;
+                          }
+                          // --------------------------------------
+                      })
+                      .catch(err => console.error("Preview load failed", err));
+                      
+                      // Create HTML Structure (Standardized Size Container)
+                      const imgContainer = document.createElement('div');
+                      imgContainer.className = 'img-container';
+                      imgContainer.appendChild(img);
+
+                      const cardBody = document.createElement('div');
+                      cardBody.className = 'card-body';
+                      
+                      cardBody.innerHTML = `
+                          <h3 class="card-title">${file.package_frame}</h3>
+                          <p class="card-text">${new Date(file.upload_date).toLocaleDateString()}</p>
+                          <button class="download-btn" onclick="downloadImage('${file.drive_file_id}', '${file.filename}')">
+                              <i class="fa-solid fa-download"></i> Download Original
+                          </button>
+                      `;
+
+                      // Assemble Card
+                      card.appendChild(imgContainer);
+                      card.appendChild(cardBody);
+                      grid.appendChild(card);
+                  });
+
+              } catch (error) {
+                  document.getElementById('loading').innerHTML = '<p style="color:red">Error loading gallery. Please log in again.</p>';
+                  console.error(error);
+              }
+          }
+
+          async function downloadImage(fileId, filename) {
+              try {
+                  // User Feedback
+                  alert("Preparing download...");
+
+                  // Fetch with ?mode=download to get clean image
+                  const response = await fetch(`/api/user/image/${fileId}?mode=download`, {
+                      headers: { 'Authorization': `Bearer ${token}` }
+                  });
+
+                  if (response.ok) {
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.style.display = 'none';
+                      a.href = url;
+                      a.download = filename; 
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                  } else {
+                      alert("Download failed. You may not have permission.");
+                  }
+              } catch (err) {
+                  console.error(err);
+                  alert("Error downloading file.");
+              }
+          }
+
+          // Run on page load
+          loadGallery();
+          loadUserProfile();
+      </script>
+
+          <button class="btn-primary" style="margin-top: 30px;">Download All Photos</button>
+      </div>
+
+
+
+    <div id="account" class="tab-content">
+      <div class="content-card">
+          <h2 class="section-title">Personal Information</h2>
+          
+          <form id="profileForm">
+              <div class="form-grid">
+                  <div class="form-group">
+                      <label>First Name</label>
+                      <input type="text" id="firstNameInput" placeholder="Loading...">
+                  </div>
+                  <div class="form-group">
+                      <label>Last Name</label>
+                      <input type="text" id="lastNameInput" placeholder="Loading...">
+                  </div>
+                  <div class="form-group">
+                      <label>Email Address</label>
+                      <input type="email" id="emailInput" disabled style="background: #f9f9f9; color: #777; cursor: not-allowed;">
+                      <small style="color: #999; font-size: 11px;">Email cannot be changed</small>
+                  </div>
+                  <div class="form-group">
+                      <label>Phone Number</label>
+                      <input type="tel" id="phoneInput" placeholder="Add phone number">
+                  </div>
+              </div>
+
+              <button type="button" id="saveProfileBtn" class="btn-primary" style="margin-top: 20px;">
+                  Save Changes
+              </button>
+          </form>
+      </div>
+  </div>
+
+    <div id="bookings" class="tab-content">
+        <div class="content-card">
+            <h2 class="section-title">My Bookings</h2>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Booking Ref</th>
+                        <th>Package</th>
+                        <th>Location</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#BK-2025-001</td>
+                        <td>Barkada Package A</td>
+                        <td>San Juan, La Union</td>
+                        <td>Dec 10, 2025</td>
+                        <td><span class="status-badge status-pending">Upcoming</span></td>
+                    </tr>
+                    <tr>
+                        <td>#BK-2024-892</td>
+                        <td>Solo Portrait</td>
+                        <td>Intramuros</td>
+                        <td>Oct 15, 2024</td>
+                        <td><span class="status-badge status-completed">Completed</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="transactions" class="tab-content">
+        <div class="content-card">
+            <h2 class="section-title">Transaction History</h2>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>TRX-99812</td>
+                        <td>Dec 01, 2025</td>
+                        <td>Downpayment - La Union</td>
+                        <td>₱ 1,500.00</td>
+                        <td><span class="status-badge status-completed">Paid</span></td>
+                    </tr>
+                    <tr>
+                        <td>TRX-88123</td>
+                        <td>Oct 10, 2024</td>
+                        <td>Full Payment - Intramuros</td>
+                        <td>₱ 3,000.00</td>
+                        <td><span class="status-badge status-completed">Paid</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+      <div id="security" class="tab-content">
+          <div class="content-card" style="max-width: 600px;">
+              <h2 class="section-title">Security Settings</h2>
+              <form>
+                  <div class="form-group">
+                      <label>Current Password</label>
+                      <input type="password" placeholder="Enter current password">
+                  </div>
+                  <div class="form-group">
+                      <label>New Password</label>
+                      <input type="password" placeholder="Enter new password">
+                  </div>
+                  <div class="form-group">
+                      <label>Confirm New Password</label>
+                      <input type="password" placeholder="Confirm new password">
+                  </div>
+                  <button class="btn-primary">Update Password</button>
+              </form>
+          </div>
+        </div>
+    </div>
+
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImg">
+        <div id="caption"></div>
+    </div>
+
+    <div id="imageModal" class="modal">
+      <span class="close">&times;</span>
+      <img class="modal-content" id="modalImg">
+      <div id="caption"></div>
+    </div>
+
+   <!-- ===== FOOTER SECTION ===== -->
+    <footer>
+        <div class="footer-container">
+            <!-- LEFT: Logo and Contact -->
+            <div class="footer-logo-section">
+                <div class="footer-logo">
+                    <img src="images/logo_wbg.png" alt="ProfilePic Multimedia">
+                </div>
+                <div class="footer-contact">
+                    <p>0976 004 2741</p>
+                    <p>profilepicmultimedia@gmail.com</p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+              <div class="footer-column">
+                  <h3>Discover</h3>
+                  <ul>
+                      <li><a href="about.html">About Us</a></li>
+                      <li><a href="package.html#partner-locations">Partner Locations</a></li>
+                      <li><a href="package.html">Packages</a></li>
+                      <li><a href="gallery.html">Gallery</a></li>
+                      <li><a href="index.html#ntestimonial">Testimonials</a></li>
+                  </ul>
+              </div>
+
+              <div class="footer-column">
+                  <h3>Support</h3>
+                  <ul>
+                      <li><a href="#">How It Works</a></li>
+                      <li><a href="#">Booking Guide</a></li>
+                      <li><a href="user/user_gallery.html">My Gallery</a></li>
+                      <li><a href="#">Edit My Account</a></li>
+                      <li><a href="privacy-policy.html">Payment & Refund Policy</a></li>
+                      <li><a href="contact.html">Contact</a></li>
+                  </ul>
+              </div>
+
+              <!-- Legal -->
+              <div class="footer-column">
+                  <h3>Legal</h3>
+                  <ul>
+                      <li><a href="#">Terms & Conditions</a></li>
+                      <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                      <li><a href="#">FAQs</a></li>
+                  </ul>
+              </div>
+
+            <!-- Follow Us -->
+            <div class="footer-column">
+                <h3>Follow us</h3>
+                <ul>
+                <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M240 363.3L240 576L356 576L356 363.3L442.5 363.3L460.5 265.5L356 265.5L356 230.9C356 179.2 376.3 159.4 428.7 159.4C445 159.4 458.1 159.8 465.7 160.6L465.7 71.9C451.4 68 416.4 64 396.2 64C289.3 64 240 114.5 240 223.4L240 265.5L174 265.5L174 363.3L240 363.3z"/></svg></a>
+                <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M544.5 273.9C500.5 274 457.5 260.3 421.7 234.7L421.7 413.4C421.7 446.5 411.6 478.8 392.7 506C373.8 533.2 347.1 554 316.1 565.6C285.1 577.2 251.3 579.1 219.2 570.9C187.1 562.7 158.3 545 136.5 520.1C114.7 495.2 101.2 464.1 97.5 431.2C93.8 398.3 100.4 365.1 116.1 336C131.8 306.9 156.1 283.3 185.7 268.3C215.3 253.3 248.6 247.8 281.4 252.3L281.4 342.2C266.4 337.5 250.3 337.6 235.4 342.6C220.5 347.6 207.5 357.2 198.4 369.9C189.3 382.6 184.4 398 184.5 413.8C184.6 429.6 189.7 444.8 199 457.5C208.3 470.2 221.4 479.6 236.4 484.4C251.4 489.2 267.5 489.2 282.4 484.3C297.3 479.4 310.4 469.9 319.6 457.2C328.8 444.5 333.8 429.1 333.8 413.4L333.8 64L421.8 64C421.7 71.4 422.4 78.9 423.7 86.2C426.8 102.5 433.1 118.1 442.4 131.9C451.7 145.7 463.7 157.5 477.6 166.5C497.5 179.6 520.8 186.6 544.6 186.6L544.6 274z"/></svg></a>
+                </ul>
+            </div>
+            
+        </div>
+
+        <div class="footer-bottom">
+            <p class="copyright">Copyright © ProfilePicMultimedia 2025</p>
+            <a href="#" class="back-to-top">Back to top</a>
+        </div>
+    </footer>
+
+  <script>
+      function openTab(evt, tabName) {
+          // Hide all tab content
+          var i, tabContent, tabBtns;
+          tabContent = document.getElementsByClassName("tab-content");
+          for (i = 0; i < tabContent.length; i++) {
+              tabContent[i].classList.remove("active");
+          }
+
+          // Remove active class from all buttons
+          tabBtns = document.getElementsByClassName("tab-btn");
+          for (i = 0; i < tabBtns.length; i++) {
+              tabBtns[i].classList.remove("active");
+          }
+
+          // Show the current tab and add active class to button
+          document.getElementById(tabName).classList.add("active");
+          evt.currentTarget.classList.add("active");
+      }
+  </script>
+
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const accountNav = document.getElementById("account-nav");
+  const token = localStorage.getItem("token"); // token stored after login
+
+    if (token) {
+    // User is logged in
+    accountNav.innerHTML = `
+      <a href="user/user_gallery.html"><i class="fa-solid fa-user"></i> Profile</a>
+      <a href="#" id="logout-btn" style="margin-left:10px; color:#ff4d4d;">Logout</a>
+    `;
+
+    // Logout functionality
+    document.getElementById("logout-btn").addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("token");
+      window.location.reload();
+    });
+  } else {
+    // User not logged in
+    accountNav.innerHTML = `
+      <a href="login.html">Login</a> /
+      <a href="signup.html">Signup</a>
+    `;
+  }
+});
+</script>
+
+</body>
+</html>
