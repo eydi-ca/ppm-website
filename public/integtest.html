@@ -223,6 +223,15 @@
                                     <input type="text" id="packageFrame" placeholder="e.g. Suba Sand Dunes - Package A" required>
                                 </div>
 
+                                <div class="form-group">
+                                    <label for="packageType">Package Type</label>
+                                    <select id="packageType" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
+                                        <option value="standard">Standard (Locked / Watermarked)</option>
+                                        <option value="premium">Premium (Auto-Unlocked / Downloadable)</option>
+                                    </select>
+                                    <small style="color: #666;">Select "Premium" if the customer already paid for soft copies.</small>
+                                </div>
+
                                 <div class="file-upload-wrapper">
                                     <span class="material-icons-round" style="font-size:30px; color:#A3AED0;">cloud_upload</span>
                                     <p style="margin:5px 0 15px; color:#A3AED0;">Drag files or click to upload</p>
@@ -237,7 +246,7 @@
                                     </button>
                                 </div>
 
-                                <button id="submitBtn" type="submit" class="upload-btn" style="width:100%;">Upload Photo(s)</button>
+                                <button id="submitBtn" type="submit" class="upload-btn" style="width:100%;">Upload</button>
 
                                 <div id="status-message" style="margin-top: 15px; text-align: center;"></div>
                             </form>
@@ -342,12 +351,15 @@
     }
 
     // ----------------------------------------------------
-    // 3. Main Upload Logic
+    // 3. Main Upload Logic (Updated with Package Type)
     // ----------------------------------------------------
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Get Token for Admin Upload
+        // Debugging: Let's see if the button click registers
+        console.log("Submit button clicked!");
+
+        // Get Token
         const token = localStorage.getItem('token'); 
         if (!token) {
             alert("You are not logged in!");
@@ -363,76 +375,88 @@
         }
 
         const packageFrame = document.getElementById('packageFrame').value;
+        
+        // NEW: Get the Package Type safely
+        const packageTypeElement = document.getElementById('packageType');
+        const packageType = packageTypeElement ? packageTypeElement.value : 'standard'; // Default to standard if element missing
+        
         const targetEmail = userEmailInput.value;
 
-        // B. Loading State (Checking User)
+        // B. Loading State
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Verifying User...';
         statusMessage.innerHTML = '';
 
-        // C. Verify Email Exists & Get ID (REAL LOGIC)
-        // ============================================
-        let resolvedUserID = await findUserByEmail(targetEmail);
-        // ============================================
+        try {
+            // C. Verify Email Exists & Get ID
+            let resolvedUserID = await findUserByEmail(targetEmail);
 
-        // D. Handle User Not Found
-        if (!resolvedUserID) {
+            // D. Handle User Not Found
+            if (!resolvedUserID) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Upload Photo(s)';
+                showErrorModal(`We could not find a customer with the email: <b>${targetEmail}</b>.<br>Please register them first.`);
+                return; 
+            }
+
+            // E. Proceed with Upload
+            submitBtn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Uploading...';
+            statusMessage.innerHTML = `<span style="color:#3498db;">User Verified (ID: ${resolvedUserID}). Uploading 0 of ${files.length}...</span>`;
+            
+            let successfulUploads = 0;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                const formData = new FormData();
+                formData.append('userID', resolvedUserID); 
+                formData.append('packageFrame', packageFrame);
+                formData.append('initialPackage', packageType); // <--- SENDING PACKAGE TYPE
+                formData.append('customerPhoto', file);
+
+                try {
+                    const response = await fetch('/api/admin/upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        successfulUploads++;
+                        statusMessage.innerHTML = `<span style="color:#3498db;">Uploaded ${successfulUploads} of ${files.length} files...</span>`;
+                    } else {
+                        const errData = await response.json();
+                        console.error("Upload failed for file:", file.name, errData);
+                        statusMessage.innerHTML += `<br><span style="color:orange;">Failed ${file.name}: ${errData.message}</span>`;
+                    }
+
+                } catch (error) {
+                    console.error("Network error:", error);
+                    statusMessage.innerHTML += `<br><span style="color:red;">Network Error on ${file.name}.</span>`;
+                }
+            }
+            
+            // F. Final State Update
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Upload Photo(s)';
-            showErrorModal(`We could not find a customer with the email: <b>${targetEmail}</b>.<br>Please register them first.`);
-            return; 
-        }
-
-        // E. Proceed with Upload (User Found)
-        submitBtn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Uploading...';
-        statusMessage.innerHTML = `<span style="color:#3498db;">User Verified (ID: ${resolvedUserID}). Uploading 0 of ${files.length}...</span>`;
-        
-        let successfulUploads = 0;
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
             
-            const formData = new FormData();
-            formData.append('userID', resolvedUserID); 
-            formData.append('packageFrame', packageFrame);
-            formData.append('customerPhoto', file);
+            customerPhotoInput.value = null; 
+            previewContainer.innerHTML = '';
+            
+            userEmailInput.readOnly = true; 
+            currentUserID = resolvedUserID; 
 
-            try {
-                // REAL API CALL TO UPLOAD
-                const response = await fetch('/api/admin/upload', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }, // Send Token!
-                    body: formData
-                });
-
-                if (response.ok) {
-                    successfulUploads++;
-                    statusMessage.innerHTML = `<span style="color:#3498db;">Uploaded ${successfulUploads} of ${files.length} files...</span>`;
-                } else {
-                    const errData = await response.json();
-                    statusMessage.innerHTML += `<br><span style="color:orange;">Failed ${file.name}: ${errData.message}</span>`;
-                }
-
-            } catch (error) {
-                statusMessage.innerHTML += `<br><span style="color:red;">Network Error on ${file.name}.</span>`;
+            if (successfulUploads > 0) {
+                statusMessage.innerHTML = `<span style="color:#27ae60;">✅ Upload Complete! Added for ${targetEmail}.</span>`;
+                qrControls.style.display = 'block'; 
+            } else {
+                statusMessage.innerHTML = `<span style="color:red;">❌ Upload failed. Check console (F12).</span>`;
             }
-        }
-        
-        // F. Final State Update
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Upload Photo(s)';
-        
-        customerPhotoInput.value = null; 
-        previewContainer.innerHTML = '';
-        
-        userEmailInput.readOnly = true; 
-        currentUserID = resolvedUserID; 
-
-        if (successfulUploads > 0) {
-            statusMessage.innerHTML = `<span style="color:#27ae60;">✅ Upload Complete! Added for ${targetEmail}.</span>`;
-            qrControls.style.display = 'block'; 
-        } else {
-            statusMessage.innerHTML = `<span style="color:red;">❌ Upload failed. Check console.</span>`;
+        } catch (err) {
+            console.error("CRITICAL ERROR:", err);
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Error";
+            alert("A system error occurred. Check the console (F12).");
         }
     });
 
