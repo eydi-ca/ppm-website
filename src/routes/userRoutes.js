@@ -211,44 +211,7 @@ router.get('/image/:fileId', protect, async (req, res) => {
                 res.status(500).json({ message: 'Server error unlocking photo.' });
             }
         });
-
         
-        // GET /api/user/transactions (With Pagination)
-        router.get('/transactions', protect, async (req, res) => {
-            try {
-                const userId = req.user.id;
-                const page = parseInt(req.query.page) || 1;
-                const limit = 10; // Items per page
-                const offset = (page - 1) * limit;
-
-                // 1. Get Total Count (for calculating total pages)
-                const [countResult] = await db.query(
-                    "SELECT COUNT(*) as total FROM transactions WHERE user_id = ?", 
-                    [userId]
-                );
-                const totalItems = countResult[0].total;
-                const totalPages = Math.ceil(totalItems / limit);
-
-                // 2. Get Data
-                const [rows] = await db.query(
-                    `SELECT * FROM transactions 
-                    WHERE user_id = ? 
-                    ORDER BY created_at DESC 
-                    LIMIT ? OFFSET ?`,
-                    [userId, limit, offset]
-                );
-
-                res.json({
-                    transactions: rows,
-                    currentPage: page,
-                    totalPages: totalPages
-                });
-
-            } catch (error) {
-                console.error('Transaction Error:', error);
-                res.status(500).json({ message: 'Server error fetching transactions.' });
-            }
-        });
     
 
 module.exports = router;
