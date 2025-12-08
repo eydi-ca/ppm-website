@@ -4,11 +4,13 @@ const path = require('path');
 const cors = require('cors');
 const db = require('./src/config/db'); // Your Promise-based connection
 const upload = require('./src/config/multerConfig');
+const { startCron } = require('./src/services/cronService');
 
 // Import Routes
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
+const paymentRoutes = require('./src/routes/paymentRoutes');
 
 const driveService = require('./src/services/googleDriveService');
 
@@ -63,6 +65,7 @@ app.get('/api/users/find', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Test DB Route (Matches the style above)
 app.get('/api/test-db', async (req, res) => {
@@ -80,6 +83,8 @@ app.get('/api/test-db', async (req, res) => {
     try {
         console.log("🔄 Initializing Google Drive Service...");
         try { await driveService.initDrive(); } catch (e) { console.warn("Drive Init Skipped"); }
+        
+        startCron();
         
         app.listen(PORT, () => {
             console.log(`✅ Server running at http://localhost:${PORT}`);

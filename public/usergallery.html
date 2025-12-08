@@ -50,79 +50,232 @@
 
         // 2. Fetch Gallery Data
         async function loadGallery() {
-            try {
-                const response = await fetch('/api/user/gallery', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+        try {
+            // ------------------------------------------------------
+            // 1. GET USER STATUS (Credits & Unlock State)
+            // ------------------------------------------------------
+            const statusRes = await fetch('/api/auth/me', {
+                 headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            let isFullUnlocked = false;
+            let credits = 0;
 
-                if (!response.ok) throw new Error('Failed to load gallery');
+            if (statusRes.ok) {
+                const userProfile = await statusRes.json();
+                isFullUnlocked = userProfile.is_full_unlocked === 1;
+                credits = userProfile.credits || 0;
+            }
 
-                const files = await response.json();
-                const grid = document.getElementById('galleryGrid');
-                const loading = document.getElementById('loading');
+            // ------------------------------------------------------
+            // 2. UPDATE UI HEADER (Banner, Credits, Download All)
+            // ------------------------------------------------------
+            const purchaseBanner = document.getElementById('purchaseBanner');
+            const creditCountSpan = document.getElementById('creditCount');
+            const creditDisplay = document.getElementById('creditDisplay');
+            const downloadAllBtn = document.getElementById('downloadAllBtn');
+
+            // A. Credit Counter UI
+            if (isFullUnlocked) {
+                if (creditCountSpan) creditCountSpan.innerText = "∞"; 
+                if (creditDisplay) {
+                    creditDisplay.style.background = "#d4edda"; 
+                    creditDisplay.style.color = "#155724";
+                    creditDisplay.style.borderColor = "#c3e6cb";
+                }
+                // Hide Banner & Add Spacing
+                if (purchaseBanner) purchaseBanner.style.display = 'none';
+                document.body.style.paddingTop = "90px"; 
+            } else {
+                if (creditCountSpan) creditCountSpan.innerText = credits;
+                if (creditDisplay) {
+                    creditDisplay.style.background = "#f0f2f5";
+                    creditDisplay.style.color = "#555";
+                }
+                // Show Banner
+                if (purchaseBanner) purchaseBanner.style.display = 'block';
+                document.body.style.paddingTop = "0px";
+            }
+
+            // B. Download All Button Visibility
+            if (downloadAllBtn) {
+                if (isFullUnlocked) {
+                    downloadAllBtn.style.display = 'flex';
+                    
+                    // Attach Zip Download Logic
+                    downloadAllBtn.onclick = async function() {
+                        const originalText = downloadAllBtn.innerHTML;
+                        downloadAllBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Zipping...';
+                        downloadAllBtn.disabled = true;
+
+                        try {
+                            const response = await fetch('/api/user/gallery/download-all', {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (response.ok) {
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = "Travel_Memories.zip";
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                
+                                if(typeof showStatusModal === 'function') {
+                                    showStatusModal("Download Started", "Your zip file is downloading.", true);
+                                }
+                            } else {
+                                throw new Error("Download failed");
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            if(typeof showStatusModal === 'function') {
+                                showStatusModal("Error", "Could not zip files.", false, true);
+                            } else {
+                                alert("Error downloading zip.");
+                            }
+                        } finally {
+                            downloadAllBtn.innerHTML = originalText;
+                            downloadAllBtn.disabled = false;
+                        }
+                    };
+                } else {
+                    downloadAllBtn.style.display = 'none';
+                }
+            }
+
+            // ------------------------------------------------------
+            // 3. FETCH & RENDER PHOTOS
+            // ------------------------------------------------------
+            const response = await fetch('/api/user/gallery', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error('Failed to load gallery');
+
+            const files = await response.json();
+            const grid = document.getElementById('galleryGrid');
+            const loading = document.getElementById('loading');
+            
+            if(loading) loading.style.display = 'none';
+
+            if (files.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">No photos found.</p>';
+                return;
+            }
+
+            files.forEach((file) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const img = document.createElement('img');
+                img.alt = file.package_frame || "Travel Photo";
+                img.style.cursor = "pointer"; 
                 
-                loading.style.display = 'none';
+                // Fetch Watermarked Preview
+                fetch(`/api/user/image/${file.drive_file_id}?mode=preview`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(res => res.blob())
+                .then(blob => {
+                    img.src = URL.createObjectURL(blob);
+                    
+                    // Click to Open Preview Modal
+                    img.onclick = function(){
+                        const imageModal = document.getElementById("imageModal");
+                        const modalImg = document.getElementById("modalImg");
+                        const captionText = document.getElementById("caption");
+                        
+                        if (imageModal && modalImg) {
+                            imageModal.style.display = "block";
+                            modalImg.src = this.src;
+                            if(captionText) captionText.innerHTML = file.package_frame || "";
+                        }
+                    }
+                })
+                .catch(err => console.error("Preview load failed", err));
+                
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'img-container';
+                imgContainer.appendChild(img);
 
-                if (files.length === 0) {
-                    grid.innerHTML = '<p style="text-align:center; width:100%;">No photos found for this account.</p>';
-                    return;
+                // --- BUTTON LOGIC (Hybrid System) ---
+                let buttonHtml = '';
+
+                // CONDITION 1: Access Granted (Full or Single)
+                if (isFullUnlocked || file.is_unlocked_single === 1) {
+                    buttonHtml = `
+                        <button class="download-btn" onclick="downloadImage('${file.drive_file_id}', '${file.filename}')" style="background-color: #27ae60;">
+                            <i class="fa-solid fa-download"></i> Download Original
+                        </button>`;
+                } 
+                // CONDITION 2: Locked, but Has Credits
+                else if (credits > 0) {
+                    buttonHtml = `
+                        <button class="download-btn" onclick="unlockWithCredit('${file.drive_file_id}')" style="background-color: #3498db;">
+                            <i class="fa-solid fa-ticket"></i> Unlock (1 Credit)
+                        </button>`;
+                } 
+                // CONDITION 3: Locked, No Credits
+                else {
+                    buttonHtml = `
+                        <button class="download-btn" 
+                            onclick="showStatusModal('Gallery Locked', 'You need to purchase a package to download photos.', false, false, 'package.html', 'View Packages')" 
+                            style="background-color: #95a5a6; cursor: pointer;">
+                            <i class="fa-solid fa-lock"></i> Unlock Photo
+                        </button>`;
                 }
 
-                // 3. Render Each Photo
-                files.forEach(async (file) => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body';
+                cardBody.innerHTML = `
+                    <h3 class="card-title">${file.package_frame || 'Photo'}</h3>
+                    <p class="card-text">${new Date(file.upload_date).toLocaleDateString()}</p>
+                    ${buttonHtml} 
+                `;
 
-                    // We create an Image element to load the data safely
-                    const img = document.createElement( 'img');
-                    img.alt = "Loading...";
+                card.appendChild(imgContainer);
+                card.appendChild(cardBody);
+                grid.appendChild(card);
+            });
 
-                    // --- NEW: Fetch logic for WATERMARKED PREVIEW ---
-                    // We add ?mode=preview to the URL
-                    fetch(`/api/user/image/${file.drive_file_id}?mode=preview`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    })
-                    .then(res => res.blob())
-                    .then(blob => {
-                        img.src = URL.createObjectURL(blob);
-                    });
-                    
-                    // --- HTML Structure ---
-                    card.innerHTML = `
-                      <div class="img-container"></div> 
-                        <div class="card-body">
-                            <h3 class="card-title">${file.package_frame}</h3>
-                            <p class="card-text">${new Date(file.upload_date).toLocaleDateString()}</p>
-                            
-                            <button onclick="downloadImage('${file.drive_file_id}', '${file.filename}')" 
-                                    style="width:100%; padding:8px; background:#333; color:white; border:none; cursor:pointer; margin-top:10px;">
-                                Download Original ⬇️
-                            </button>
-                        </div>
-                      `;
-                      // Append the image we created above into the container
-                      card.querySelector('.img-container').appendChild(img);
-                     grid.appendChild(card);
+        } catch (error) {
+            const loading = document.getElementById('loading');
+            if(loading) loading.innerHTML = '<p style="color:red">Error loading gallery. Please log in again.</p>';
+            console.error(error);
+        }
+    }
 
-                    // 4. Secure Image Fetching (The Magic Part)
-                    // We fetch the image data separately so we can send the Token header
-                    try {
-                        const imgRes = await fetch(`/api/user/image/${file.drive_file_id}`, {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                        if(imgRes.ok) {
-                            const blob = await imgRes.blob();
-                            const imgUrl = URL.createObjectURL(blob);
-                            document.getElementById(`img-${file.drive_file_id}`).src = imgUrl;
-                        }
-                    } catch (err) {
-                        console.error("Error loading image", err);
-                    }
+        async function unlockWithCredit(fileId) {
+            if(!confirm("Spend 1 Credit to unlock this photo?")) return;
+
+            // Show loading modal
+            if(typeof showStatusModal === 'function') showStatusModal("Unlocking...", "Processing your credit.", false);
+
+            try {
+                const res = await fetch('/api/user/unlock-single', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ fileId: fileId })
                 });
 
-            } catch (error) {
-                document.getElementById('loading').innerText = 'Error loading gallery. Please log in again.';
-                console.error(error);
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showStatusModal("Success! 🔓", "Photo unlocked. You can now download it.", true);
+                    // Reload gallery to update button to 'Download' and decrement credit counter
+                    setTimeout(() => loadGallery(), 1500);
+                } else {
+                    showStatusModal("Error", data.message || "Could not unlock.", false, true);
+                }
+            } catch (err) {
+                console.error(err);
+                showStatusModal("Error", "Network error.", false, true);
             }
         }
 

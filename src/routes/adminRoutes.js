@@ -160,4 +160,52 @@ router.put('/users/:id/unlock', protect, authorize(['admin', 'staff']), async (r
     }
 });
 
+// GET /api/admin/transactions (With Pagination)
+router.get('/transactions', protect, authorize(['admin', 'staff']), async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
+
+        // 1. Get Total Count
+        const [countResult] = await db.query("SELECT COUNT(*) as total FROM transactions");
+        const totalItems = countResult[0].total;
+        const totalPages = Math.ceil(totalItems / limit);
+
+        // 2. Get Data (Joined with Users)
+        const sql = `
+            SELECT 
+                t.id,
+                t.reference_number,
+                t.amount,
+                t.package_type,
+                t.payment_status,
+                t.created_at,
+                u.full_name AS customer_name,
+                u.email
+            FROM transactions t
+            JOIN users u ON t.user_id = u.id
+            ORDER BY t.created_at DESC
+            LIMIT ? OFFSET ?
+        `;
+        
+        const [rows] = await db.query(sql, [limit, offset]);
+        
+        // 3. Get Total Earnings (Sum of all time)
+        const [totalRow] = await db.query("SELECT SUM(amount) as total FROM transactions WHERE payment_status = 'paid'");
+        const totalEarnings = totalRow[0].total || 0;
+
+        res.json({
+            transactions: rows,
+            totalEarnings: totalEarnings,
+            currentPage: page,
+            totalPages: totalPages
+        });
+
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
+        res.status(500).json({ message: 'Server error fetching transactions.' });
+    }
+});
+
 module.exports = router;
