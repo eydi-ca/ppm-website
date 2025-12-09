@@ -103,7 +103,23 @@
         button, .upload-btn { background: var(--primary); color: #fff; border: none; padding: 12px 24px; border-radius: var(--radius-xl); font-weight: 500; font-family: "DM Sans", sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(10, 20, 45, 0.2); }
         button:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(10, 20, 45, 0.3); }
 
-        .file-upload-wrapper { border: 2px dashed #A3AED0; border-radius: var(--radius-l); padding: 30px; text-align: center; background: #fafbff; margin: 20px 0; }
+        .file-upload-wrapper {
+            border: 2px dashed #A3AED0;
+            border-radius: var(--radius-l);
+            padding: 30px;
+            text-align: center;
+            background: #fafbff;
+            margin: 20px 0;
+            cursor: pointer; /* Shows it's clickable */
+            transition: all 0.2s ease;
+        }
+
+        /* This class is added by JS when dragging over */
+        .file-upload-wrapper.drag-over {
+            border-color: var(--primary);
+            background-color: #e6f0ff;
+            transform: scale(1.02);
+        }
         
         #clearSelectionBtn { background-color: var(--accent); padding: 8px 15px; font-size: 0.85rem; border-radius: var(--radius-m); }
         
@@ -232,10 +248,14 @@
                                     <small style="color: #666;">Select "Premium" if the customer already paid for soft copies.</small>
                                 </div>
 
-                                <div class="file-upload-wrapper">
+                                <div class="file-upload-wrapper" id="drop-zone">
                                     <span class="material-icons-round" style="font-size:30px; color:#A3AED0;">cloud_upload</span>
-                                    <p style="margin:5px 0 15px; color:#A3AED0;">Drag files or click to upload</p>
-                                    <input type="file" id="customerPhoto" name="photos" accept="image/*" multiple required style="width: auto; background: white; border: 1px solid #ddd;"/> 
+                                    
+                                    <p style="margin:5px 0 15px; color:#A3AED0;">
+                                        Drag files here or click to browse
+                                    </p>
+
+                                    <input type="file" id="customerPhoto" name="photos" accept="image/*" multiple  style="display: none;" /> 
                                 </div>
 
                                 <div id="previewContainer" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"></div>
@@ -287,7 +307,11 @@
 
     <!-------------------------------------------->
 
-    <script>
+ <script>
+    // ============================================
+    // 1. NAVIGATION & SYSTEM LOGIC
+    // ============================================
+    
     // Logout Logic
     document.getElementById("logoutBtn").addEventListener("click", () => {
         localStorage.clear();
@@ -309,14 +333,13 @@
     });
 
     // Modal Override
-    const originalGetElement = document.getElementById;
     window.openModalOverride = function(id) {
         document.getElementById(id).style.display = 'flex';
     }
 
-    console.log("Script is running!");
-
-    // 1. Element References
+    // ============================================
+    // 2. FILE UPLOAD VARIABLES
+    // ============================================
     const form = document.getElementById('uploadForm');
     const submitBtn = document.getElementById('submitBtn');
     const statusMessage = document.getElementById('status-message');
@@ -327,40 +350,140 @@
     const clearSelectionBtn = document.getElementById('clearSelectionBtn');
     const previewContainer = document.getElementById('previewContainer');
     const errorModal = document.getElementById('errorModal'); 
+    const dropZone = document.getElementById('drop-zone');
 
     let currentUserID = null;
+    
+    // --- MASTER ARRAY: Stores all files added via click or drag ---
+    let accumulatedFiles = []; 
 
-    // ----------------------------------------------------
-    // 2. HELPER: Find User ID by Email (Connects to server.js)
-    // ----------------------------------------------------
-    async function findUserByEmail(email) {
-        try {
-            // Calls your server.js route: /api/users/find
-            const response = await fetch(`/api/users/find?email=${encodeURIComponent(email)}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
 
-            if (!response.ok) return null; 
+    // ============================================
+    // 3. FILE HANDLING (ADD WITHOUT RESETTING)
+    // ============================================
 
-            const userData = await response.json();
-            return userData.id; 
-        } catch (error) {
-            console.error("Search Error:", error);
-            return null;
-        }
+    // A. Process New Files
+    function handleNewFiles(fileList) {
+        if (!fileList || fileList.length === 0) return;
+
+        // Add new files to our master array
+        Array.from(fileList).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                // Optional: Prevent exact duplicates
+                const isDuplicate = accumulatedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!isDuplicate) {
+                    accumulatedFiles.push(file);
+                }
+            }
+        });
+
+        updatePreviews();
     }
 
-    // ----------------------------------------------------
-    // 3. Main Upload Logic (Updated with Package Type)
-    // ----------------------------------------------------
+    // B. Update Visuals
+    function updatePreviews() {
+        previewContainer.innerHTML = ''; // Clear current display
+        
+        if (accumulatedFiles.length === 0) {
+            return;
+        }
+
+        accumulatedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgDiv = document.createElement('div');
+                imgDiv.style.position = 'relative';
+                imgDiv.className = 'preview-item'; // For easier styling if needed
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '100px'; 
+                img.style.height = '100px'; 
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '5px';
+                
+                // "Remove" Button (Red X)
+                const removeBtn = document.createElement('span');
+                removeBtn.innerHTML = '×';
+                removeBtn.style.cssText = 'position:absolute; top:-8px; right:-8px; background:#FF5B5B; color:white; border-radius:50%; width:22px; height:22px; text-align:center; line-height:20px; cursor:pointer; font-weight:bold; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);';
+                
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation(); // Stop bubble so we don't trigger file select
+                    accumulatedFiles.splice(index, 1); // Remove from array
+                    updatePreviews(); // Re-render
+                };
+
+                imgDiv.appendChild(img);
+                imgDiv.appendChild(removeBtn);
+                previewContainer.appendChild(imgDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // C. Input Change (Click Browse)
+    customerPhotoInput.addEventListener('change', (e) => {
+        handleNewFiles(e.target.files);
+        customerPhotoInput.value = ''; // Reset input to allow re-selecting same file
+    });
+
+    // D. Drag & Drop Events
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        handleNewFiles(e.dataTransfer.files);
+    });
+
+    // E. Click Box to Open File Dialog
+    dropZone.addEventListener('click', (e) => {
+        // Don't open dialog if clicking a remove button
+        if(e.target.tagName === 'SPAN' && e.target.innerHTML === '×') return;
+        customerPhotoInput.click();
+    });
+
+    // F. Clear All
+    function clearSelection() {
+        accumulatedFiles = [];
+        previewContainer.innerHTML = '';
+        customerPhotoInput.value = '';
+        statusMessage.innerHTML = '';
+    }
+    clearSelectionBtn.addEventListener('click', clearSelection);
+
+
+    // ============================================
+    // 4. API & FORM SUBMISSION
+    // ============================================
+
+    // Find User Helper
+    async function findUserByEmail(email) {
+        try {
+            const response = await fetch(`/api/users/find?email=${encodeURIComponent(email)}`);
+            if (!response.ok) return null; 
+            const userData = await response.json();
+            return userData.id; 
+        } catch (error) { return null; }
+    }
+
+    // Submit Logic
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Debugging: Let's see if the button click registers
-        console.log("Submit button clicked!");
+        // Use our ARRAY length, not the input files
+        if (accumulatedFiles.length === 0) {
+            statusMessage.innerHTML = '<span style="color:red;">Please select/drag at least one file.</span>';
+            return;
+        }
 
-        // Get Token
         const token = localStorage.getItem('token'); 
         if (!token) {
             alert("You are not logged in!");
@@ -368,51 +491,39 @@
             return;
         }
 
-        // A. Validate Files
-        const files = customerPhotoInput.files;
-        if (files.length === 0) {
-            statusMessage.innerHTML = '<span style="color:red;">Please select at least one file.</span>';
-            return;
-        }
-
         const packageFrame = document.getElementById('packageFrame').value;
-        
-        // NEW: Get the Package Type safely
         const packageTypeElement = document.getElementById('packageType');
-        const packageType = packageTypeElement ? packageTypeElement.value : 'standard'; // Default to standard if element missing
-        
+        const packageType = packageTypeElement ? packageTypeElement.value : 'standard';
         const targetEmail = userEmailInput.value;
 
-        // B. Loading State
+        // UI Loading State
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Verifying User...';
+        submitBtn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Verifying...';
         statusMessage.innerHTML = '';
 
         try {
-            // C. Verify Email Exists & Get ID
+            // Verify User
             let resolvedUserID = await findUserByEmail(targetEmail);
-
-            // D. Handle User Not Found
             if (!resolvedUserID) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Upload Photo(s)';
-                showErrorModal(`We could not find a customer with the email: <b>${targetEmail}</b>.<br>Please register them first.`);
+                showErrorModal(`User not found: <b>${targetEmail}</b>`);
                 return; 
             }
 
-            // E. Proceed with Upload
+            // Start Upload
             submitBtn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Uploading...';
-            statusMessage.innerHTML = `<span style="color:#3498db;">User Verified (ID: ${resolvedUserID}). Uploading 0 of ${files.length}...</span>`;
-            
+            currentUserID = resolvedUserID;
             let successfulUploads = 0;
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
+            // Loop through ACCUMULATED files
+            for (let i = 0; i < accumulatedFiles.length; i++) {
+                const file = accumulatedFiles[i];
                 
                 const formData = new FormData();
                 formData.append('userID', resolvedUserID); 
                 formData.append('packageFrame', packageFrame);
-                formData.append('initialPackage', packageType); // <--- SENDING PACKAGE TYPE
+                formData.append('initialPackage', packageType);
                 formData.append('customerPhoto', file);
 
                 try {
@@ -424,71 +535,48 @@
 
                     if (response.ok) {
                         successfulUploads++;
-                        statusMessage.innerHTML = `<span style="color:#3498db;">Uploaded ${successfulUploads} of ${files.length} files...</span>`;
+                        statusMessage.innerHTML = `<span style="color:#3498db;">Uploaded ${successfulUploads} of ${accumulatedFiles.length}...</span>`;
                     } else {
-                        const errData = await response.json();
-                        console.error("Upload failed for file:", file.name, errData);
-                        statusMessage.innerHTML += `<br><span style="color:orange;">Failed ${file.name}: ${errData.message}</span>`;
+                        const err = await response.json();
+                        console.error(`Failed ${file.name}`, err);
                     }
-
                 } catch (error) {
-                    console.error("Network error:", error);
-                    statusMessage.innerHTML += `<br><span style="color:red;">Network Error on ${file.name}.</span>`;
+                    console.error("Network error on file:", file.name);
                 }
             }
             
-            // F. Final State Update
+            // Final State
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Upload Photo(s)';
             
-            customerPhotoInput.value = null; 
-            previewContainer.innerHTML = '';
-            
-            userEmailInput.readOnly = true; 
-            currentUserID = resolvedUserID; 
-
             if (successfulUploads > 0) {
-                statusMessage.innerHTML = `<span style="color:#27ae60;">✅ Upload Complete! Added for ${targetEmail}.</span>`;
+                statusMessage.innerHTML = `<span style="color:#27ae60;">✅ Upload Complete!</span>`;
                 qrControls.style.display = 'block'; 
+                userEmailInput.readOnly = true;
+                // Optional: Clear files after success?
+                // clearSelection(); 
             } else {
-                statusMessage.innerHTML = `<span style="color:red;">❌ Upload failed. Check console (F12).</span>`;
+                statusMessage.innerHTML = `<span style="color:red;">❌ Upload failed.</span>`;
             }
+
         } catch (err) {
-            console.error("CRITICAL ERROR:", err);
+            console.error(err);
             submitBtn.disabled = false;
-            submitBtn.innerText = "Error";
-            alert("A system error occurred. Check the console (F12).");
+            alert("System Error. Check Console.");
         }
     });
 
-    // ----------------------------------------------------
-    // 4. Modal Functions
-    // ----------------------------------------------------
-    function showErrorModal(msg) {
-        document.getElementById('errorText').innerHTML = msg;
-        errorModal.style.display = 'flex';
-    }
 
-    function closeErrorModal() {
-        errorModal.style.display = 'none';
-    }
-
-    window.onclick = function(event) {
-        if (event.target == errorModal) {
-            closeErrorModal();
-        }
-    }
-
-    // ----------------------------------------------------
-    // 5. Existing Helpers (QR, Preview, Clear)
-    // ----------------------------------------------------
+    // ============================================
+    // 5. MODAL & QR FUNCTIONS
+    // ============================================
+    
+    // QR Code Logic
     generateQRBtn.addEventListener('click', () => {
         if (!currentUserID) { alert("No upload session found."); return; }
-        
         generateQRBtn.style.display = 'none';
         document.getElementById('qr-result-area').style.display = 'block';
 
-        // Use IP Address if testing on phone, otherwise localhost
         const host = window.location.host; 
         const galleryUrl = `${window.location.protocol}//${host}/usergallery.html?uid=${currentUserID}`;
         
@@ -501,48 +589,28 @@
         });
     });
 
-    function handleFileSelect(event) {
-        previewContainer.innerHTML = '';
-        const files = event.target.files;
-        if (files.length === 0) return;
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            if (!file.type.startsWith('image/')) continue;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const imgDiv = document.createElement('div');
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.width = '100px'; 
-                img.style.height = '100px'; 
-                img.style.objectFit = 'cover';
-                img.style.borderRadius = '5px';
-                imgDiv.appendChild(img);
-                previewContainer.appendChild(imgDiv);
-            };
-            reader.readAsDataURL(file);
-        }
+    // Error Modal
+    function showErrorModal(msg) {
+        document.getElementById('errorText').innerHTML = msg;
+        errorModal.style.display = 'flex';
+    }
+    function closeErrorModal() {
+        errorModal.style.display = 'none';
+    }
+    window.onclick = function(event) {
+        if (event.target == errorModal) closeErrorModal();
     }
 
-    function clearSelection() {
-        customerPhotoInput.value = null; 
-        previewContainer.innerHTML = ''; 
-    }
-
-    customerPhotoInput.addEventListener('change', handleFileSelect);
-    clearSelectionBtn.addEventListener('click', clearSelection);
-
+    // Global Reset
     window.resetForm = function() {
         form.reset();
+        clearSelection();
         userEmailInput.readOnly = false;
         qrControls.style.display = 'none';
         document.getElementById('qr-result-area').style.display = 'none';
         statusMessage.innerHTML = '';
         generateQRBtn.style.display = 'block';
         currentUserID = null;
-        previewContainer.innerHTML = '';
     }
 </script>
 </body>

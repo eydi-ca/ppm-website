@@ -36,6 +36,34 @@ async function getRotatedWatermarkUnit() {
         throw error;
     }
 }
+
+// ===========================================
+// GET /api/user/profile
+// Fetches the logged-in user's details
+// ===========================================
+router.get('/profile', protect, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        // Fetch user details (excluding password)
+        const [rows] = await db.query(
+            "SELECT id, first_name, last_name, email, phone_number FROM users WHERE id = ?", 
+            [userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json(rows[0]);
+
+    } catch (error) {
+        console.error("Profile Fetch Error:", error);
+        res.status(500).json({ message: "Server error fetching profile." });
+    }
+});
+
+
 // ----------------------------------------------
 
 // GET /api/user/gallery
@@ -213,5 +241,5 @@ router.get('/image/:fileId', protect, async (req, res) => {
         });
         
     
-
+        
 module.exports = router;

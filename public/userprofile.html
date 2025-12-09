@@ -1227,6 +1227,29 @@
                 } else if (status === 'cancelled') {
                     showStatusModal("Payment Cancelled", "Transaction was cancelled.", false, true);
                 }
+
+                // CHECK FOR BOOKING RETURN
+
+                if (status === 'booking_success') {
+                    const sessionId = localStorage.getItem('pending_booking_id');
+                    if(sessionId) {
+                        showStatusModal("Verifying Booking", "Please wait...", false);
+                        
+                        fetch(`/api/booking/verify?session_id=${sessionId}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if(data.status === 'paid') {
+                                localStorage.removeItem('pending_booking_id');
+                                showStatusModal("Booking Confirmed! 🚙", "See you at the dunes!", true);
+                                // Optionally redirect to a "My Bookings" tab
+                            } else {
+                                showStatusModal("Error", "Payment not completed.", false, true);
+                            }
+                        });
+                    }
+                }
             }
 
 

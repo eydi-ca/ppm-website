@@ -11,6 +11,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
+const bookingRoutes = require('./src/routes/bookingRoutes');
 
 const driveService = require('./src/services/googleDriveService');
 
@@ -66,6 +67,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/booking', bookingRoutes);
 
 // Test DB Route (Matches the style above)
 app.get('/api/test-db', async (req, res) => {

@@ -1,47 +1,52 @@
 // src/middleware/auth.js
 const jwt = require('jsonwebtoken');
+const db = require('../config/db'); // 👈 IMPORT DATABASE CONNECTION
 
-exports.protect = (req, res, next) => {
-    // 1. Check for token in the Authorization header
-    const authHeader = req.headers.authorization;
+exports.protect = async (req, res, next) => { // 👈 Make this ASYNC
+    let token;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        // 401: Unauthorized
-        return res.status(401).json({ message: 'No token provided, access denied.' });
+    // 1. Check for token in headers
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
     }
 
-    const token = authHeader.split(' ')[1]; // Get token from "Bearer <token>"
+    if (!token) {
+        return res.status(401).json({ message: 'Not authorized, no token.' });
+    }
 
     try {
-        // 2. Verify and decode the token
+        // 2. Verify Token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // 3. 👇 FETCH FULL USER FROM DB (The Critical Fix)
+        // We select everything (*) so we get first_name, last_name, phone_number, credits, etc.
+        const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [decoded.id]);
+
+        if (rows.length === 0) {
+            return res.status(401).json({ message: 'User belonging to this token no longer exists.' });
+        }
+
+        // Attach the FULL user database row to the request
+        req.user = rows[0]; 
         
-        // 3. Attach user data (id and role) to the request object
-        req.user = decoded; 
-        
-        // 4. Continue to the next handler/controller function
         next();
 
     } catch (err) {
-        // If token is invalid or expired
-        // 403: Forbidden (but often 401 is used for token errors)
-        return res.status(401).json({ message: 'Token is not valid or has expired.' });
+        console.error("Auth Middleware Error:", err);
+        return res.status(401).json({ message: 'Not authorized, token failed.' });
     }
 };
 
 // Middleware to restrict access based on user role
 exports.authorize = (roles = []) => {
-    // roles is an array, e.g., ['admin', 'staff']
     if (typeof roles === 'string') {
         roles = [roles];
     }
 
     return (req, res, next) => {
-        // Check if the user's role is included in the allowed roles array
         if (!roles.includes(req.user.role)) {
-            // 403: Forbidden
             return res.status(403).json({ 
-                message: `User role ${req.user.role} is not authorized to access this resource.` 
+                message: `User role ${req.user.role} is not authorized.` 
             });
         }
         next();

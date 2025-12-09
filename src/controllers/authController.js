@@ -6,7 +6,8 @@ const jwt = require('jsonwebtoken');
 // 1. Register User
 exports.register = async (req, res) => {
     try {
-        const { full_name, email, password } = req.body;
+        // FIXED: Destructure first_name and last_name
+        const { first_name, last_name, email, password } = req.body;
 
         // Check if user already exists
         const [existingUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -18,9 +19,11 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Save to database
-        const sql = 'INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)';
-        await db.query(sql, [full_name, email, hashedPassword]);
+        // FIXED: Save separate names to database
+        // Ensure your database table 'users' has columns 'first_name' and 'last_name'
+        const sql = 'INSERT INTO users (first_name, last_name, email, password_hash) VALUES (?, ?, ?, ?)';
+        
+        await db.query(sql, [first_name, last_name, email, hashedPassword]);
 
         res.status(201).json({ message: 'User registered successfully!' });
 
@@ -50,8 +53,9 @@ exports.login = async (req, res) => {
         }
 
         // Generate Token (JWT)
+        // We include email in the token so we can display it immediately on the frontend if needed
         const token = jwt.sign(
-            { id: user.id, role: user.role },
+            { id: user.id, role: user.role, email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
@@ -59,7 +63,13 @@ exports.login = async (req, res) => {
         res.json({ 
             message: 'Login successful', 
             token: token, 
-            user: { id: user.id, name: user.full_name, role: user.role } 
+            user: { 
+                id: user.id, 
+                // FIXED: Return first and last name instead of full_name
+                first_name: user.first_name, 
+                last_name: user.last_name,
+                role: user.role 
+            } 
         });
 
     } catch (error) {

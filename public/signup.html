@@ -452,7 +452,6 @@ function removeInlineErrors() {
 }
 
 // Helper function to display an error below a specific input
-// Helper function to display an error below a specific input
 function displayInlineError(inputId, message) {
   // Find the input element (e.g., #password)
   const inputElement = document.getElementById(inputId);
@@ -512,7 +511,6 @@ function isPasswordValid(password) {
 
   return { valid: true };
 }
-
 // --- 3. UPDATED FORM SUBMISSION (MODIFIED) ---
 document.getElementById("signupForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -545,15 +543,23 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
       return; 
   }
 
-  // If validation passes, continue with API call
-  const full_name = `${firstName} ${lastName}`.trim();
+  // --- CHANGED SECTION START ---
+  // We no longer combine them into full_name. 
+  // We send them as separate keys matching your database columns.
 
   try {
     const response = await fetch("/api/auth/register", { 
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ full_name, email, password })
+      // Updated payload structure:
+      body: JSON.stringify({ 
+          first_name: firstName, 
+          last_name: lastName, 
+          email: email, 
+          password: password 
+      })
     });
+  // --- CHANGED SECTION END ---
 
     const data = await response.json(); 
 
