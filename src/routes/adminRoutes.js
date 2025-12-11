@@ -79,9 +79,17 @@ router.post('/upload', protect, authorize(['admin', 'staff']), upload.single('cu
 // GET /api/admin/users - READ All Users
 router.get('/users', protect, authorize(['admin', 'staff']), async (req, res) => {
     try {
-        // FIXED: Select 'full_name' and alias it as 'name' so frontend code doesn't break
+        // ✅ FIXED: Select new columns and concatenate them for the frontend
+        // We use CONCAT to combine first + last name so the frontend still sees a "name" property
         const [users] = await db.query(`
-            SELECT id, full_name AS name, email, role, credits, is_full_unlocked, created_at 
+            SELECT 
+                id, 
+                CONCAT(first_name, ' ', last_name) AS name, 
+                email, 
+                role, 
+                credits, 
+                is_full_unlocked, 
+                created_at 
             FROM users 
             ORDER BY FIELD(role, "admin", "staff", "customer"), created_at DESC
         `);
@@ -94,7 +102,6 @@ router.get('/users', protect, authorize(['admin', 'staff']), async (req, res) =>
 
 // POST /api/admin/users - CREATE New User
 router.post('/users', protect, authorize(['admin']), async (req, res) => {
-    // FIXED: Use 'full_name' in destructuring logic if needed, but frontend sends 'name'
     const { name, email, password, role } = req.body;
     
     if (!name || !email || !password || !role) {
@@ -104,10 +111,15 @@ router.post('/users', protect, authorize(['admin']), async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // FIXED: Insert into 'full_name' column
+        // ✅ FIXED: Split the single 'name' string from frontend into First/Last
+        const nameParts = name.trim().split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ') || ''; // Handle single names
+
+        // ✅ FIXED: Insert into new columns
         const [result] = await db.query(
-            'INSERT INTO users (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)',
-            [name, email, hashedPassword, role]
+            'INSERT INTO users (first_name, last_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
+            [firstName, lastName, email, hashedPassword, role]
         );
         
         res.status(201).json({ 
@@ -130,10 +142,15 @@ router.put('/users/:id', protect, authorize(['admin']), async (req, res) => {
     const userId = req.params.id;
     
     try {
-        // FIXED: Update 'full_name' column
+        // ✅ FIXED: Split the name again for updates
+        const nameParts = name.trim().split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        // ✅ FIXED: Update new columns
         await db.query(
-            'UPDATE users SET full_name = ?, email = ?, role = ? WHERE id = ?',
-            [name, email, role, userId]
+            'UPDATE users SET first_name = ?, last_name = ?, email = ?, role = ? WHERE id = ?',
+            [firstName, lastName, email, role, userId]
         );
         res.json({ message: 'User updated successfully.' });
     } catch (error) {
@@ -144,7 +161,6 @@ router.put('/users/:id', protect, authorize(['admin']), async (req, res) => {
         res.status(500).json({ message: 'Server error updating user.' });
     }
 });
-
 // PUT /api/admin/users/:id/unlock - FORCE UNLOCK (Manual Toggle)
 // This allows Admin to unlock a user manually later (e.g. if they paid Cash)
 router.put('/users/:id/unlock', protect, authorize(['admin', 'staff']), async (req, res) => {

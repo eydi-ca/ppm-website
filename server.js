@@ -5,6 +5,7 @@ const cors = require('cors');
 const db = require('./src/config/db'); // Your Promise-based connection
 const upload = require('./src/config/multerConfig');
 const { startCron } = require('./src/services/cronService');
+const jwt = require('jsonwebtoken');
 
 // Import Routes
 const authRoutes = require('./src/routes/authRoutes');
@@ -79,7 +80,6 @@ app.get('/api/test-db', async (req, res) => {
         res.status(500).json({ status: 'error', message: 'Database connection failed' });
     }
 });
-
 // 6. SERVER STARTUP
 (async () => {
     try {
@@ -96,3 +96,74 @@ app.get('/api/test-db', async (req, res) => {
         process.exit(1);
     }
 })();
+// GET: Fetch User Profile (Using Token)
+app.get('/api/user-profile', async (req, res) => {
+    try {
+        // 1. Get the token from the header
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1]; // Removes "Bearer "
+
+        if (!token) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
+
+        // 2. Verify the token to get User ID
+        // IMPORTANT: process.env.JWT_SECRET must match what you used in your Login route
+        // If you don't have a .env file yet, replace process.env.JWT_SECRET with your actual secret key string
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id; 
+
+        console.log("🔓 Decoded User ID:", userId); 
+
+        // 3. Fetch from Database
+        const sql = "SELECT * FROM users WHERE id = ?";
+        const [rows] = await db.query(sql, [userId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = rows[0];
+
+        res.json({
+            firstName: user.first_name || user.firstname || '', 
+            lastName: user.last_name || user.lastname || '',
+            email: user.email,
+            phone: user.phone
+        });
+
+    } catch (error) {
+        console.error("❌ Token Error:", error.message);
+        return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+});
+
+// PUT: Update User Profile
+app.put('/api/update-profile', async (req, res) => {
+    try {
+        const userId = req.session.userId;
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Not authenticated' });
+        }
+
+        const { firstName, lastName, phone } = req.body;
+
+        // MySQL Query to Update
+        // CHECK YOUR DB COLUMNS: Ensure 'first_name', 'last_name', 'phone' match your database table columns
+        const sql = `
+            UPDATE users 
+            SET first_name = ?, last_name = ?, phone = ? 
+            WHERE id = ?
+        `;
+
+        // Execute query
+        await db.query(sql, [firstName, lastName, phone, userId]);
+
+        res.json({ message: 'Profile updated successfully' });
+
+    } catch (error) {
+        console.error("❌ Error updating profile:", error);
+        res.status(500).json({ message: 'Server error updating profile' });
+    }
+});

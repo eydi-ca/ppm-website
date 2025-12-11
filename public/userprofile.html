@@ -631,7 +631,7 @@
     <div class="nav-container">
       <div class="logo">
         <!-- Replace this with your actual logo image -->
-        <img src="logos/logo3.png" alt="Profilepic Multimedia Logo" />
+        <img src="/public/materials/logos/logo3.png" alt="Profilepic Multimedia Logo" />
       </div>
 
       <nav class="nav-links">
@@ -674,7 +674,7 @@
   <section class="profile-hero">
     <img src="https://i.pravatar.cc/300?img=10" alt="User Profile" class="profile-avatar">
     <div class="profile-info">
-        <h1>Hello, Maria Dela Cruz</h1>
+        <h1 id="profileWelcome">Hello, Loading...</h1>
         <p>Member since 2024 | Traveler & Explorer</p>
         <div class="edit-badge">
             <i class="fa-solid fa-pen"></i> Edit Avatar
@@ -885,6 +885,18 @@
                     lastNameInput.value = user.last_name || "";
                     phoneInput.value = user.phone_number || ""; 
                     if(user.email) emailInput.value = user.email;
+
+                    // ===============================================
+                    // 2. PASTE THIS PART HERE TO FIX THE "LOADING"
+                    // ===============================================
+                    const welcomeText = document.getElementById('profileWelcome');
+                    if (welcomeText) {
+                        // We use || to handle empty names
+                        const fName = userData.firstName || 'User';
+                        const lName = userData.lastName || '';
+                        welcomeText.innerText = `Hello, ${fName} ${lName}`;
+                    }
+                    // ===============================================
                 } catch (error) { console.error(error); }
             }
 
@@ -975,7 +987,7 @@
                                     if (response.ok) {
                                         const blob = await response.blob();
                                         const url = window.URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
+                                                                                                                                                                                               const a = document.createElement('a');
                                         a.href = url;
                                         a.download = "Travel_Memories.zip";
                                         document.body.appendChild(a);
@@ -1290,12 +1302,12 @@
                   </div>
               </div>
 
-              <button type="button" id="saveProfileBtn" class="btn-primary" style="margin-top: 20px;">
-                  Save Changes
-              </button>
-          </form>
-      </div>
-  </div>
+                <button type="button" id="saveProfileBtn" class="btn-primary" style="margin-top: 20px;">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
 
     <div id="bookings" class="tab-content">
         <div class="content-card">
@@ -1481,33 +1493,118 @@
           document.getElementById(tabName).classList.add("active");
           evt.currentTarget.classList.add("active");
       }
-  </script>
 
-  <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const accountNav = document.getElementById("account-nav");
-  const token = localStorage.getItem("token"); // token stored after login
 
-    if (token) {
-    // User is logged in
-    accountNav.innerHTML = `
-      <a href="user/user_gallery.html"><i class="fa-solid fa-user"></i> Profile</a>
-      <a href="#" id="logout-btn" style="margin-left:10px; color:#ff4d4d;">Logout</a>
-    `;
+document.addEventListener("DOMContentLoaded", async () => {
+    // ==========================================
+    // PART 1: NAVBAR & LOGOUT LOGIC
+    // ==========================================
+    const accountNav = document.getElementById("account-nav");
+    const token = localStorage.getItem("token"); // token stored after login
 
-    // Logout functionality
-    document.getElementById("logout-btn").addEventListener("click", (e) => {
-      e.preventDefault();
-      localStorage.removeItem("token");
-      window.location.reload();
-    });
-  } else {
-    // User not logged in
-    accountNav.innerHTML = `
-      <a href="login.html">Login</a> /
-      <a href="signup.html">Signup</a>
-    `;
-  }
+    if (accountNav) {
+        if (token) {
+            // User is logged in
+            accountNav.innerHTML = `
+                <a href="user/user_gallery.html"><i class="fa-solid fa-user"></i> Profile</a>
+                <a href="#" id="logout-btn" style="margin-left:10px; color:#ff4d4d;">Logout</a>
+            `;
+
+            // Logout functionality
+            const logoutBtn = document.getElementById("logout-btn");
+            if (logoutBtn) {
+                logoutBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem("token");
+                    window.location.reload();
+                });
+            }
+        } else {
+            // User not logged in
+            accountNav.innerHTML = `
+                <a href="login.html">Login</a> /
+                <a href="signup.html">Signup</a>
+            `;
+        }
+    }
+
+    // ==========================================
+    // PART 2: PROFILE FORM LOGIC
+    // ==========================================
+    
+    // 1. SELECT ELEMENTS
+    const firstNameInput = document.getElementById('firstNameInput');
+    const lastNameInput = document.getElementById('lastNameInput');
+    const emailInput = document.getElementById('emailInput');
+    const phoneInput = document.getElementById('phoneInput');
+    const saveBtn = document.getElementById('saveProfileBtn');
+
+    // 2. FETCH DATA (Only if we are on the profile page)
+    if (firstNameInput) { 
+        try {
+            // Get the token from storage
+            const token = localStorage.getItem('token');
+
+            // Send it to the server
+            const response = await fetch('/api/user-profile', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // specific format for tokens
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                firstNameInput.value = userData.firstName || '';
+                lastNameInput.value = userData.lastName || '';
+                emailInput.value = userData.email || '';
+                phoneInput.value = userData.phone || '';
+            } else {
+                console.warn('User profile fetch failed:', response.status);
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        }
+    }
+
+    // 3. SAVE DATA
+    if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = 'Saving...';
+            saveBtn.disabled = true;
+
+            const updatedData = {
+                firstName: firstNameInput.value,
+                lastName: lastNameInput.value,
+                phone: phoneInput.value
+            };
+
+            try {
+                const response = await fetch('/api/update-profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Profile updated successfully!');
+                } else {
+                    alert('Error: ' + (result.message || 'Update failed'));
+                }
+
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                alert('Connection error. Please try again.');
+            } finally {
+                saveBtn.innerText = originalText;
+                saveBtn.disabled = false;
+            }
+        });
+    }
 });
 </script>
 
